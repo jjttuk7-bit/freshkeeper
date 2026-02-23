@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  password            String?
+  name                String?
+  image               String?
+  provider            String?
+  providerId          String?
+  householdSize       Int       @default(1)
+  dietaryRestrictions String    @default("[]")
+  allergies           String    @default("[]")
+  preferredCuisine    String    @default("[]")
+  cookingLevel        String    @default("beginner")
+  plan                String    @default("free")
+
+  ingredients       Ingredient[]
+  shoppingLists     ShoppingList[]
+  notifications     Notification[]
+  preferences       UserPreference[]
+  familyMemberships FamilyMember[]
+  ownedFamilies     Family[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Ingredient {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name            String
+  category        String
+  storageType     String
+  registeredAt    DateTime  @default(now())
+  expiryDate      DateTime
+  freshnessStatus String    @default("fresh")
+  quantity        Float     @default(1)
+  unit            String    @default("개")
+  memo            String?
+  imageUrl        String?
+
+  isConsumed      Boolean   @default(false)
+  isWasted        Boolean   @default(false)
+  consumedAt      DateTime?
+  purchasePrice   Int?
+
+  notifications   Notification[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId, freshnessStatus])
+  @@index([userId, storageType])
+  @@index([userId, expiryDate])
+  @@index([userId, category])
+  @@map("ingredients")
+}
+
+model Recipe {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  difficulty  String  @default("easy")
+  cookTime    Int
+  prepTime    Int
+  servings    Int     @default(2)
+  calories    Int?
+  nutrition   String?
+  steps       String
+  ingredients String
+  imageUrl    String?
+  tags        String  @default("[]")
+  source      String?
+
+  preferences UserPreference[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("recipes")
+}
+
+model ShoppingList {
+  id       String  @id @default(cuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  familyId String?
+  family   Family? @relation(fields: [familyId], references: [id])
+
+  title  String @default("장보기 목록")
+  status String @default("active")
+
+  items ShoppingItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("shopping_lists")
+}
+
+model ShoppingItem {
+  id     String       @id @default(cuid())
+  listId String
+  list   ShoppingList @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  name           String
+  quantity       Float   @default(1)
+  unit           String  @default("개")
+  category       String?
+  estimatedPrice Int?
+  checked        Boolean @default(false)
+  sourceRecipeId String?
+
+  createdAt DateTime @default(now())
+
+  @@map("shopping_items")
+}
+
+model Notification {
+  id           String      @id @default(cuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type         String
+  ingredientId String?
+  ingredient   Ingredient? @relation(fields: [ingredientId], references: [id], onDelete: SetNull)
+
+  title   String
+  body    String
+  payload String?
+
+  scheduledAt DateTime
+  sentAt      DateTime?
+  readAt      DateTime?
+  status      String    @default("pending")
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, status])
+  @@index([scheduledAt, status])
+  @@map("notifications")
+}
+
+model Family {
+  id         String @id @default(cuid())
+  ownerId    String
+  owner      User   @relation(fields: [ownerId], references: [id])
+  name       String @default("우리 가족")
+  inviteCode String @unique @default(cuid())
+
+  members       FamilyMember[]
+  shoppingLists ShoppingList[]
+
+  createdAt DateTime @default(now())
+
+  @@map("families")
+}
+
+model FamilyMember {
+  familyId String
+  family   Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     String @default("member")
+
+  joinedAt DateTime @default(now())
+
+  @@id([familyId, userId])
+  @@map("family_members")
+}
+
+model UserPreference {
+  id       String  @id @default(cuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipeId String
+  recipe   Recipe  @relation(fields: [recipeId], references: [id])
+  rating   Int?
+  liked    Boolean @default(false)
+  cooked   Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, recipeId])
+  @@map("user_preferences")
+}
+
+model FoodDB {
+  id          String @id @default(cuid())
+  name        String
+  category    String
+  aliases     String @default("[]")
+  avgShelfLife String
+  nutrition   String?
+  barcode     String? @unique
+  imageUrl    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("food_db")
+}

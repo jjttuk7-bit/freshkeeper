@@ -1,0 +1,240 @@
+'use client'
+
+import { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { useCreateIngredient } from '@/hooks/useIngredients'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { CATEGORIES } from '@/constants/categories'
+import type { IngredientCreateInput, IngredientCategory } from '@/types/ingredient'
+import {
+  ArrowLeft,
+  Camera,
+  Upload,
+  Loader2,
+  CheckCircle,
+  RefreshCw,
+  Plus,
+} from 'lucide-react'
+
+interface RecognizedItem {
+  name: string
+  category: IngredientCategory
+  quantity: number
+  unit: string
+  freshness: string
+  confidence: number
+  selected: boolean
+  expiryDays: number
+}
+
+export default function CameraPage() {
+  const router = useRouter()
+  const fileRef = useRef<HTMLInputElement>(null)
+  const createIngredient = useCreateIngredient()
+
+  const [preview, setPreview] = useState<string | null>(null)
+  const [isRecognizing, setIsRecognizing] = useState(false)
+  const [recognized, setRecognized] = useState<RecognizedItem[]>([])
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (ev) => setPreview(ev.target?.result as string)
+    reader.readAsDataURL(file)
+
+    await recognizeIngredients(file)
+  }
+
+  const recognizeIngredients = async (file: File) => {
+    setIsRecognizing(true)
+    setError(null)
+    setRecognized([])
+
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const res = await fetch('/api/ai/recognize', {
+        method: 'POST',
+        body: formData,
+      })
+      const json = await res.json()
+
+      if (!json.success) throw new Error(json.error?.message)
+
+      const items: RecognizedItem[] = (json.data?.ingredients ?? []).map(
+        (item: Omit<RecognizedItem, 'selected' | 'expiryDays'>) => ({
+          ...item,
+          selected: true,
+          expiryDays: 7,
+        })
+      )
+      setRecognized(items)
+    } catch (err) {
+      setError('AI 인식에 실패했어요. 다시 시도하거나 직접 입력해주세요')
+    } finally {
+      setIsRecognizing(false)
+    }
+  }
+
+  const toggleItem = (idx: number) => {
+    setRecognized((prev) =>
+      prev.map((item, i) => (i === idx ? { ...item, selected: !item.selected } : item))
+    )
+  }
+
+  const handleSave = async () => {
+    const toSave = recognized.filter((i) => i.selected)
+    if (!toSave.length) return
+
+    setIsSaving(true)
+    try {
+      const expiryDate = new Date()
+      await Promise.all(
+        toSave.map((item) => {
+          const expiry = new Date()
+          expiry.setDate(expiry.getDate() + item.expiryDays)
+          const payload: IngredientCreateInput = {
+            name: item.name,
+            category: item.category,
+            storageType: 'fridge',
+            expiryDate: expiry.toISOString(),
+            quantity: item.quantity,
+            unit: item.unit,
+          }
+          return createIngredient.mutateAsync(payload)
+        })
+      )
+      router.push('/fridge')
+    } catch {
+      setError('저장 중 오류가 발생했어요')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const selectedCount = recognized.filter((i) => i.selected).length
+
+  return (
+    <div className="mx-auto max-w-md">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 py-4">
+        <button
+          onClick={() => router.back()}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm"
+        >
+          <ArrowLeft className="h-5 w-5 text-navy" />
+        </button>
+        <h1 className="font-bold text-navy">사진으로 등록</h1>
+      </div>
+
+      <div className="px-4 pb-6">
+        {/* Upload area */}
+        <div
+          onClick={() => fileRef.current?.click()}
+          className={`mb-4 flex min-h-48 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors ${
+            preview ? 'border-mint bg-mint-light' : 'border-gray-200 bg-white hover:border-mint/50'
+          }`}
+        >
+          {preview ? (
+            <div className="relative w-full">
+              <img src={preview} alt="미리보기" className="max-h-64 w-full rounded-xl object-contain" />
+              {isRecognizing && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-black/50">
+                  <Loader2 className="mb-2 h-8 w-8 animate-spin text-white" />
+                  <p className="text-sm font-medium text-white">AI 인식 중...</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Camera className="mb-3 h-10 w-10 text-gray-300" />
+              <p className="font-medium text-gray-500">사진을 선택하거나 촬영하세요</p>
+              <p className="mt-1 text-sm text-gray-400">여러 식재료를 한 번에 인식해요</p>
+              <div className="mt-3 flex items-center gap-2">
+                <Button variant="outline" className="rounded-xl border-mint text-mint hover:bg-mint-light">
+                  <Camera className="mr-1.5 h-4 w-4" /> 촬영
+                </Button>
+                <Button variant="outline" className="rounded-xl">
+                  <Upload className="mr-1.5 h-4 w-4" /> 갤러리
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+        <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+
+        {/* Error */}
+        {error && (
+          <div className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-accent-red">{error}</div>
+        )}
+
+        {/* Retry button */}
+        {preview && !isRecognizing && (
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-2.5 text-sm text-gray-500"
+          >
+            <RefreshCw className="h-4 w-4" /> 다른 사진 선택
+          </button>
+        )}
+
+        {/* Recognized results */}
+        {recognized.length > 0 && (
+          <div className="mb-4">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="font-semibold text-navy">인식된 식재료 ({recognized.length}개)</p>
+              <p className="text-sm text-gray-400">{selectedCount}개 선택됨</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              {recognized.map((item, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => toggleItem(idx)}
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${
+                    item.selected ? 'border-mint bg-mint-light' : 'border-gray-100 bg-white opacity-60'
+                  }`}
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-xl shadow-sm">
+                    {CATEGORIES[item.category]?.emoji ?? '📦'}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-navy">{item.name}</p>
+                    <p className="text-xs text-gray-400">
+                      {item.quantity}{item.unit} · 신선도 {Math.round(item.confidence * 100)}%
+                    </p>
+                  </div>
+                  <div className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
+                    item.selected ? 'border-mint bg-mint' : 'border-gray-300'
+                  }`}>
+                    {item.selected && <CheckCircle className="h-4 w-4 text-white" />}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Save button */}
+        {recognized.length > 0 && (
+          <Button
+            onClick={handleSave}
+            disabled={isSaving || selectedCount === 0}
+            className="w-full rounded-xl bg-mint py-5 text-base font-bold text-white hover:bg-mint-dark disabled:opacity-50"
+          >
+            {isSaving ? (
+              <><Loader2 className="mr-2 h-5 w-5 animate-spin" />저장 중...</>
+            ) : (
+              <><Plus className="mr-2 h-5 w-5" />{selectedCount}개 냉장고에 추가</>
+            )}
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}
