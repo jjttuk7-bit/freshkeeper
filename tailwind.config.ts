@@ -47,6 +47,10 @@ const config: Config = {
         },
         bg: '#FAFCFD',
       },
+      boxShadow: {
+        card: '0 2px 12px rgba(0,0,0,0.04)',
+        'card-hover': '0 4px 20px rgba(0,0,0,0.08)',
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
@@ -54,6 +58,15 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['Pretendard', 'system-ui', 'sans-serif'],
+      },
+      keyframes: {
+        'fade-in-up': {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'fade-in-up': 'fade-in-up 0.3s ease-out forwards',
       },
     },
   },

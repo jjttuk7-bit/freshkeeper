@@ -33,47 +33,47 @@ function RecipeCard({ recipe }: { recipe: Recipe }) {
   }
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+    <div className="rounded-3xl bg-white p-5 shadow-card">
       <div className="mb-2 flex items-start justify-between gap-2">
         <h4 className="font-bold text-navy">{recipe.name}</h4>
-        <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${difficultyColor[recipe.difficulty]}`}>
+        <span className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${difficultyColor[recipe.difficulty]}`}>
           {difficultyLabel[recipe.difficulty]}
         </span>
       </div>
       {recipe.description && (
-        <p className="mb-3 text-sm text-gray-500">{recipe.description}</p>
+        <p className="mb-3 text-sm text-gray-400">{recipe.description}</p>
       )}
       <div className="mb-3 flex items-center gap-3 text-xs text-gray-400">
         <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{recipe.cookTime}분</span>
         <span>{recipe.servings}인분</span>
         {recipe.calories && <span>{recipe.calories}kcal</span>}
       </div>
-      <div className="mb-3 flex flex-wrap gap-1">
+      <div className="mb-3 flex flex-wrap gap-1.5">
         {recipe.tags.slice(0, 4).map((tag) => (
-          <span key={tag} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+          <span key={tag} className="rounded-full bg-gray-50 px-2.5 py-0.5 text-xs text-gray-400">
             #{tag}
           </span>
         ))}
       </div>
-      <div className="mb-3 flex flex-wrap gap-1">
+      <div className="mb-4 flex flex-wrap gap-1.5">
         {recipe.ingredients.slice(0, 5).map((ing) => (
           <span
             key={ing.name}
-            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-              ing.inFridge ? 'bg-mint-light text-mint' : 'bg-gray-100 text-gray-400'
+            className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+              ing.inFridge ? 'bg-mint/10 text-mint' : 'bg-gray-50 text-gray-400'
             }`}
           >
             {ing.inFridge ? '✓' : '+'} {ing.name}
           </span>
         ))}
         {recipe.ingredients.length > 5 && (
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-400">
+          <span className="rounded-full bg-gray-50 px-2.5 py-0.5 text-xs text-gray-400">
             +{recipe.ingredients.length - 5}개
           </span>
         )}
       </div>
       <Link href={`/ai/recipe/${recipe.id}`}>
-        <button className="flex w-full items-center justify-center gap-1 rounded-xl bg-mint py-2 text-sm font-bold text-white hover:bg-mint-dark">
+        <button className="flex w-full items-center justify-center gap-1.5 rounded-2xl bg-mint py-2.5 text-sm font-semibold text-white shadow-lg shadow-mint/20 active:scale-[0.98] transition-transform">
           레시피 보기 <ArrowRight className="h-4 w-4" />
         </button>
       </Link>
@@ -85,24 +85,24 @@ function MessageBubble({ message }: { message: ChefMessage }) {
   const isUser = message.role === 'user'
 
   return (
-    <div className={`flex gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+    <div className={`flex gap-2.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
       {!isUser && (
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-mint to-mint-dark shadow-sm">
-          <ChefHat className="h-4 w-4 text-white" />
+        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl bg-mint/10">
+          <ChefHat className="h-5 w-5 text-mint" />
         </div>
       )}
-      <div className={`flex max-w-[80%] flex-col gap-2 ${isUser ? 'items-end' : 'items-start'}`}>
+      <div className={`flex max-w-[80%] flex-col gap-2.5 ${isUser ? 'items-end' : 'items-start'}`}>
         <div
-          className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+          className={`rounded-3xl px-4 py-3 text-sm leading-relaxed ${
             isUser
-              ? 'bg-mint text-white rounded-tr-sm'
-              : 'bg-white text-navy shadow-sm rounded-tl-sm'
+              ? 'bg-navy text-white'
+              : 'bg-white text-navy shadow-card'
           }`}
         >
           {message.content}
         </div>
         {message.recipes && message.recipes.length > 0 && (
-          <div className="flex w-full flex-col gap-2">
+          <div className="flex w-full flex-col gap-2.5">
             {message.recipes.map((recipe) => (
               <RecipeCard key={recipe.id} recipe={recipe} />
             ))}
@@ -136,32 +136,27 @@ export default function AIChefPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      {/* Header */}
-      <div className="border-b border-gray-100 bg-white px-4 py-3 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-mint to-mint-dark shadow">
-            <ChefHat className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h1 className="font-bold text-navy">AI 셰프</h1>
-            <p className="text-xs text-gray-400">냉장고 재료로 맛있는 레시피를 추천해드려요</p>
-          </div>
-          <div className="ml-auto flex h-2 w-2 rounded-full bg-freshness-fresh shadow-sm shadow-freshness-fresh/50" />
-        </div>
-      </div>
-
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="flex-1 overflow-y-auto px-5 py-4">
         <div className="flex flex-col gap-4">
+          {messages.length === 0 && !isLoading && (
+            <div className="flex flex-col items-center py-8 text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-mint/10">
+                <ChefHat className="h-8 w-8 text-mint" />
+              </div>
+              <p className="text-base font-semibold text-navy">AI 셰프에게 물어보세요</p>
+              <p className="mt-1 text-sm text-gray-400">냉장고 재료로 맛있는 레시피를 추천해드려요</p>
+            </div>
+          )}
           {messages.map((msg) => (
             <MessageBubble key={msg.id} message={msg} />
           ))}
           {isLoading && (
-            <div className="flex gap-2">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-mint to-mint-dark shadow-sm">
-                <ChefHat className="h-4 w-4 text-white" />
+            <div className="flex gap-2.5">
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl bg-mint/10">
+                <ChefHat className="h-5 w-5 text-mint" />
               </div>
-              <div className="flex items-center gap-1 rounded-2xl rounded-tl-sm bg-white px-4 py-3 shadow-sm">
+              <div className="flex items-center gap-1.5 rounded-3xl bg-white px-5 py-3.5 shadow-card">
                 <span className="h-2 w-2 animate-bounce rounded-full bg-gray-300 [animation-delay:-0.3s]" />
                 <span className="h-2 w-2 animate-bounce rounded-full bg-gray-300 [animation-delay:-0.15s]" />
                 <span className="h-2 w-2 animate-bounce rounded-full bg-gray-300" />
@@ -173,16 +168,16 @@ export default function AIChefPage() {
       </div>
 
       {/* Quick actions */}
-      <div className="overflow-x-auto border-t border-gray-100 bg-white px-4 py-2">
+      <div className="overflow-x-auto bg-bg px-5 py-2">
         <div className="flex gap-2">
           {QUICK_ACTIONS.map(({ label, icon: Icon, prompt }) => (
             <button
               key={label}
               onClick={() => handleQuickAction(prompt)}
               disabled={isLoading}
-              className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:border-mint/40 hover:bg-mint-light hover:text-mint disabled:opacity-50"
+              className="flex flex-shrink-0 items-center gap-1.5 rounded-2xl bg-white px-3.5 py-2 text-xs font-medium text-gray-500 shadow-card transition-all hover:text-mint disabled:opacity-50"
             >
-              <Icon className="h-3 w-3" />
+              <Icon className="h-3.5 w-3.5" />
               {label}
             </button>
           ))}
@@ -190,21 +185,21 @@ export default function AIChefPage() {
       </div>
 
       {/* Input bar */}
-      <div className="border-t border-gray-100 bg-white px-4 py-3">
-        <div className="flex items-center gap-2">
+      <div className="bg-bg px-5 pb-3 pt-1">
+        <div className="flex items-center gap-2.5">
           <Input
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
             placeholder="오늘 뭐 해먹을까요?"
-            className="flex-1 rounded-2xl border-gray-200 bg-gray-50 text-sm"
+            className="flex-1 rounded-2xl border-0 bg-white px-4 py-3 text-sm shadow-card focus:ring-2 focus:ring-mint/20"
             disabled={isLoading}
           />
           <Button
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="h-10 w-10 flex-shrink-0 rounded-full bg-mint p-0 text-white hover:bg-mint-dark disabled:opacity-50"
+            className="h-11 w-11 flex-shrink-0 rounded-2xl bg-mint p-0 text-white shadow-lg shadow-mint/20 hover:bg-mint-dark active:scale-[0.95] transition-transform disabled:opacity-50"
           >
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />

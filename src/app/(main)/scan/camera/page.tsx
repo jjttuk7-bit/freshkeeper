@@ -4,7 +4,6 @@ import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCreateIngredient, useIngredients } from '@/hooks/useIngredients'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { CATEGORIES } from '@/constants/categories'
 import type { IngredientCreateInput, IngredientCategory } from '@/types/ingredient'
 import { classifyFood, getFoodTip } from '@/lib/food-classifier'
@@ -173,47 +172,55 @@ export default function CameraPage() {
   return (
     <div className="mx-auto max-w-md">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-4">
+      <div className="flex items-center gap-3 px-5 py-4">
         <button
           onClick={() => router.back()}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm"
+          className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white shadow-card"
         >
           <ArrowLeft className="h-5 w-5 text-navy" />
         </button>
-        <h1 className="font-bold text-navy">사진으로 등록</h1>
+        <h1 className="text-lg font-bold tracking-tight text-navy">사진으로 등록</h1>
       </div>
 
-      <div className="px-4 pb-6">
+      <div className="px-5 pb-6">
         {/* Upload area */}
         <div
-          className={`mb-4 flex min-h-48 flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors ${
-            preview ? 'border-mint bg-mint-light' : 'border-gray-200 bg-white'
+          className={`mb-4 flex min-h-56 flex-col items-center justify-center rounded-3xl transition-colors ${
+            preview ? 'bg-mint/5 shadow-card' : 'bg-white shadow-card'
           }`}
         >
           {preview ? (
             <div className="relative w-full">
-              <img src={preview} alt="미리보기" className="max-h-64 w-full rounded-xl object-contain" />
+              <img src={preview} alt="미리보기" className="max-h-64 w-full rounded-3xl object-contain p-2" />
               {isRecognizing && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-black/50">
+                <div className="absolute inset-0 flex flex-col items-center justify-center rounded-3xl bg-black/50">
                   <Loader2 className="mb-2 h-8 w-8 animate-spin text-white" />
                   <p className="text-sm font-medium text-white">AI 인식 중...</p>
                 </div>
               )}
             </div>
           ) : (
-            <>
-              <Camera className="mb-3 h-10 w-10 text-gray-300" />
-              <p className="font-medium text-gray-500">사진을 선택하거나 촬영하세요</p>
-              <p className="mt-1 text-sm text-gray-400">여러 식재료를 한 번에 인식해요</p>
-              <div className="mt-3 flex items-center gap-2">
-                <Button variant="outline" className="rounded-xl border-mint text-mint hover:bg-mint-light" onClick={() => cameraRef.current?.click()}>
-                  <Camera className="mr-1.5 h-4 w-4" /> 촬영
-                </Button>
-                <Button variant="outline" className="rounded-xl" onClick={() => galleryRef.current?.click()}>
-                  <Upload className="mr-1.5 h-4 w-4" /> 갤러리
-                </Button>
+            <div className="flex flex-col items-center px-6 py-8">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-mint/10">
+                <Camera className="h-8 w-8 text-mint" />
               </div>
-            </>
+              <p className="font-semibold text-navy">사진을 선택하거나 촬영하세요</p>
+              <p className="mt-1 text-sm text-gray-400">여러 식재료를 한 번에 인식해요</p>
+              <div className="mt-4 flex items-center gap-3">
+                <button
+                  onClick={() => cameraRef.current?.click()}
+                  className="flex items-center gap-1.5 rounded-2xl bg-mint px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-mint/20 active:scale-[0.98] transition-transform"
+                >
+                  <Camera className="h-4 w-4" /> 촬영
+                </button>
+                <button
+                  onClick={() => galleryRef.current?.click()}
+                  className="flex items-center gap-1.5 rounded-2xl bg-white px-5 py-2.5 text-sm font-semibold text-navy shadow-card active:scale-[0.98] transition-transform"
+                >
+                  <Upload className="h-4 w-4" /> 갤러리
+                </button>
+              </div>
+            </div>
           )}
         </div>
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
@@ -221,14 +228,14 @@ export default function CameraPage() {
 
         {/* Error */}
         {error && (
-          <div className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-accent-red">{error}</div>
+          <div className="mb-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-accent-red">{error}</div>
         )}
 
         {/* Retry button */}
         {preview && !isRecognizing && (
           <button
             onClick={() => galleryRef.current?.click()}
-            className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-2.5 text-sm text-gray-500"
+            className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-3 text-sm text-gray-400 shadow-card active:scale-[0.98] transition-transform"
           >
             <RefreshCw className="h-4 w-4" /> 다른 사진 선택
           </button>
@@ -238,23 +245,23 @@ export default function CameraPage() {
         {recognized.length > 0 && (
           <div className="mb-4">
             <div className="mb-3 flex items-center justify-between">
-              <p className="font-semibold text-navy">인식된 식재료 ({recognized.length}개)</p>
-              <p className="text-sm text-gray-400">{selectedCount}개 선택됨</p>
+              <p className="text-sm font-semibold text-navy">인식된 식재료 ({recognized.length}개)</p>
+              <p className="text-xs text-gray-400">{selectedCount}개 선택됨</p>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2.5 animate-stagger">
               {recognized.map((item, idx) => (
                 <div
                   key={idx}
                   onClick={() => toggleItem(idx)}
-                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${
-                    item.selected ? 'border-mint bg-mint-light' : 'border-gray-100 bg-white opacity-60'
+                  className={`flex cursor-pointer items-center gap-3 rounded-2xl p-4 transition-all ${
+                    item.selected ? 'bg-white shadow-card' : 'bg-gray-50 opacity-60'
                   }`}
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-xl shadow-sm">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-50 text-xl">
                     {CATEGORIES[item.category]?.emoji ?? '📦'}
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-navy">{item.name}</p>
+                    <p className="text-sm font-semibold text-navy">{item.name}</p>
                     <p className="text-xs text-gray-400">
                       {item.quantity}{item.unit} · {{ fridge: '냉장', freezer: '냉동', room: '실온' }[item.storageType]} · D-{item.shelfLifeDays}
                     </p>
@@ -262,8 +269,8 @@ export default function CameraPage() {
                       <p className="mt-0.5 text-xs text-mint-dark">💡 {item.tip}</p>
                     )}
                   </div>
-                  <div className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
-                    item.selected ? 'border-mint bg-mint' : 'border-gray-300'
+                  <div className={`flex h-6 w-6 items-center justify-center rounded-full ${
+                    item.selected ? 'bg-mint' : 'border-2 border-gray-200'
                   }`}>
                     {item.selected && <CheckCircle className="h-4 w-4 text-white" />}
                   </div>
@@ -278,7 +285,7 @@ export default function CameraPage() {
           <Button
             onClick={handleSave}
             disabled={isSaving || selectedCount === 0}
-            className="w-full rounded-xl bg-mint py-5 text-base font-bold text-white hover:bg-mint-dark disabled:opacity-50"
+            className="w-full rounded-2xl bg-mint py-4 text-[15px] font-semibold text-white shadow-lg shadow-mint/20 hover:bg-mint-dark active:scale-[0.98] transition-transform disabled:opacity-50"
           >
             {isSaving ? (
               <><Loader2 className="mr-2 h-5 w-5 animate-spin" />저장 중...</>

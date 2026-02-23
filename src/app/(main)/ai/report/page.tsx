@@ -30,20 +30,20 @@ function WeekNavigator({
   canNext: boolean
 }) {
   return (
-    <div className="flex items-center justify-between rounded-2xl bg-white p-3 shadow-sm">
+    <div className="flex items-center justify-between rounded-3xl bg-white p-4 shadow-card">
       <button
         onClick={onPrev}
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+        className="flex h-8 w-8 items-center justify-center rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors"
       >
-        <ChevronLeft className="h-4 w-4 text-gray-600" />
+        <ChevronLeft className="h-4 w-4 text-gray-500" />
       </button>
       <span className="text-sm font-bold text-navy">{weekLabel}</span>
       <button
         onClick={onNext}
         disabled={!canNext}
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-30"
+        className="flex h-8 w-8 items-center justify-center rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors disabled:opacity-30"
       >
-        <ChevronRight className="h-4 w-4 text-gray-600" />
+        <ChevronRight className="h-4 w-4 text-gray-500" />
       </button>
     </div>
   )
@@ -53,9 +53,11 @@ function MealPlanAccordion({ mealPlan }: { mealPlan: { day: string; meals: strin
   const [openDay, setOpenDay] = useState<string | null>(null)
 
   return (
-    <div className="rounded-2xl border border-accent-purple/20 bg-white shadow-sm">
-      <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-3">
-        <UtensilsCrossed className="h-4 w-4 text-accent-purple" />
+    <div className="overflow-hidden rounded-3xl bg-white shadow-card">
+      <div className="flex items-center gap-2.5 px-5 py-4">
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent-purple/10">
+          <UtensilsCrossed className="h-4 w-4 text-accent-purple" />
+        </div>
         <h3 className="text-sm font-bold text-navy">추천 식단</h3>
       </div>
       <div className="divide-y divide-gray-50">
@@ -63,7 +65,7 @@ function MealPlanAccordion({ mealPlan }: { mealPlan: { day: string; meals: strin
           <div key={day}>
             <button
               onClick={() => setOpenDay(openDay === day ? null : day)}
-              className="flex w-full items-center justify-between px-4 py-2.5 text-sm hover:bg-gray-50"
+              className="flex w-full items-center justify-between px-5 py-3 text-sm hover:bg-gray-50 transition-colors"
             >
               <span className="font-semibold text-navy">{day}요일</span>
               {openDay === day ? (
@@ -73,9 +75,9 @@ function MealPlanAccordion({ mealPlan }: { mealPlan: { day: string; meals: strin
               )}
             </button>
             {openDay === day && (
-              <div className="bg-accent-purple/5 px-4 py-2.5">
+              <div className="bg-gray-50 px-5 py-3">
                 {meals.map((meal, i) => (
-                  <p key={i} className="py-0.5 text-xs text-gray-600">
+                  <p key={i} className="py-0.5 text-xs text-gray-600 leading-relaxed">
                     {meal}
                   </p>
                 ))}
@@ -124,7 +126,7 @@ export default function AIReportPage() {
   const weekLabel = data ? `${data.period.start} ~ ${data.period.end}` : '이번 주'
 
   return (
-    <div className="px-4 py-5">
+    <div className="px-5 py-5">
       {/* Week Navigator */}
       <WeekNavigator
         weekLabel={weekLabel}
@@ -135,9 +137,9 @@ export default function AIReportPage() {
 
       {/* Loading */}
       {isLoading && (
-        <div className="flex flex-col items-center gap-3 py-12 text-center">
+        <div className="flex flex-col items-center gap-3 py-16 text-center">
           <div className="relative">
-            <FileBarChart className="h-10 w-10 text-accent-purple/30" />
+            <FileBarChart className="h-12 w-12 text-accent-purple/20" />
             <Loader2 className="absolute -right-1 -bottom-1 h-5 w-5 animate-spin text-accent-purple" />
           </div>
           <p className="text-sm text-gray-400">AI가 주간 리포트를 생성 중이에요...</p>
@@ -146,12 +148,14 @@ export default function AIReportPage() {
 
       {/* Error */}
       {error && !isLoading && (
-        <div className="flex flex-col items-center gap-3 py-8 text-center">
-          <Trash2 className="h-10 w-10 text-freshness-urgent/50" />
-          <p className="text-sm text-gray-500">리포트를 불러오지 못했어요</p>
+        <div className="flex flex-col items-center gap-3 py-12 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-freshness-urgent/10">
+            <Trash2 className="h-8 w-8 text-freshness-urgent" />
+          </div>
+          <p className="text-sm text-gray-400">리포트를 불러오지 못했어요</p>
           <button
             onClick={() => refetch()}
-            className="rounded-xl bg-accent-purple px-4 py-2 text-sm font-semibold text-white hover:bg-accent-purple/90"
+            className="rounded-2xl bg-accent-purple px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-accent-purple/20 active:scale-[0.98] transition-transform"
           >
             다시 시도
           </button>
@@ -160,14 +164,16 @@ export default function AIReportPage() {
 
       {/* Report Content */}
       {data && !isLoading && (
-        <div className="mt-3 flex flex-col gap-3">
+        <div className="mt-3 flex flex-col gap-3 animate-stagger">
           {/* Waste Stats Badge */}
-          <div className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2">
-              <Trash2 className="h-5 w-5 text-gray-400" />
+          <div className="flex items-center justify-between rounded-3xl bg-white p-5 shadow-card">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gray-50">
+                <Trash2 className="h-5 w-5 text-gray-400" />
+              </div>
               <span className="text-sm font-semibold text-navy">폐기 현황</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <span className="text-xl font-bold text-navy">{data.wasteStats.count}개</span>
               <div className={`flex items-center gap-0.5 ${wasteTrendColor}`}>
                 <WasteTrendIcon className="h-4 w-4" />
@@ -177,36 +183,40 @@ export default function AIReportPage() {
           </div>
 
           {/* Highlights */}
-          <div className="rounded-2xl border border-freshness-fresh/20 bg-white p-4 shadow-sm">
-            <div className="mb-3 flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-freshness-fresh" />
+          <div className="rounded-3xl bg-white p-5 shadow-card">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-freshness-fresh/10">
+                <Trophy className="h-4 w-4 text-freshness-fresh" />
+              </div>
               <h3 className="text-sm font-bold text-navy">잘한 점</h3>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2.5">
               {data.highlights.map((h, i) => (
-                <div key={i} className="flex items-start gap-2">
+                <div key={i} className="flex items-start gap-2.5">
                   <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-freshness-fresh/10 text-xs text-freshness-fresh">
                     ✓
                   </span>
-                  <p className="text-sm text-gray-600">{h}</p>
+                  <p className="text-sm leading-relaxed text-gray-600">{h}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Improvements */}
-          <div className="rounded-2xl border border-freshness-caution/20 bg-white p-4 shadow-sm">
-            <div className="mb-3 flex items-center gap-2">
-              <TrendingDown className="h-4 w-4 text-freshness-caution" />
+          <div className="rounded-3xl bg-white p-5 shadow-card">
+            <div className="mb-4 flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-freshness-caution/10">
+                <TrendingDown className="h-4 w-4 text-freshness-caution" />
+              </div>
               <h3 className="text-sm font-bold text-navy">개선 포인트</h3>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2.5">
               {data.improvements.map((imp, i) => (
-                <div key={i} className="flex items-start gap-2">
+                <div key={i} className="flex items-start gap-2.5">
                   <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-freshness-caution/10 text-xs text-freshness-caution">
                     !
                   </span>
-                  <p className="text-sm text-gray-600">{imp}</p>
+                  <p className="text-sm leading-relaxed text-gray-600">{imp}</p>
                 </div>
               ))}
             </div>
@@ -217,16 +227,18 @@ export default function AIReportPage() {
 
           {/* Shopping Suggestions */}
           {data.shoppingSuggestions.length > 0 && (
-            <div className="rounded-2xl border border-accent-blue/20 bg-white p-4 shadow-sm">
-              <div className="mb-3 flex items-center gap-2">
-                <ShoppingCart className="h-4 w-4 text-accent-blue" />
+            <div className="rounded-3xl bg-white p-5 shadow-card">
+              <div className="mb-4 flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent-blue/10">
+                  <ShoppingCart className="h-4 w-4 text-accent-blue" />
+                </div>
                 <h3 className="text-sm font-bold text-navy">장보기 추천</h3>
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2.5">
                 {data.shoppingSuggestions.map((s, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between rounded-xl bg-accent-blue/5 px-3 py-2"
+                    className="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-3"
                   >
                     <div>
                       <p className="text-sm font-medium text-navy">{s.name}</p>

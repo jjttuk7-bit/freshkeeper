@@ -16,34 +16,24 @@ import {
 } from 'lucide-react'
 import type { AIInsightCard } from '@/types/ai'
 
-const CARD_STYLES: Record<string, { border: string; bg: string; icon: string; iconBg: string }> = {
+const CARD_STYLES: Record<string, { icon: string; iconBg: string }> = {
   urgent: {
-    border: 'border-freshness-urgent/30',
-    bg: 'bg-freshness-urgent/5',
     icon: 'text-freshness-urgent',
     iconBg: 'bg-freshness-urgent/10',
   },
   tip: {
-    border: 'border-mint/30',
-    bg: 'bg-mint-light',
     icon: 'text-mint',
     iconBg: 'bg-mint/10',
   },
   meal_plan: {
-    border: 'border-accent-purple/30',
-    bg: 'bg-accent-purple/5',
     icon: 'text-accent-purple',
     iconBg: 'bg-accent-purple/10',
   },
   status: {
-    border: 'border-gray-200',
-    bg: 'bg-white',
     icon: 'text-navy',
     iconBg: 'bg-gray-100',
   },
   shopping: {
-    border: 'border-accent-blue/30',
-    bg: 'bg-accent-blue/5',
     icon: 'text-accent-blue',
     iconBg: 'bg-accent-blue/10',
   },
@@ -62,24 +52,24 @@ function InsightCard({ card }: { card: AIInsightCard }) {
   const IconComponent = CARD_ICONS[card.type] ?? BarChart3
 
   return (
-    <div className={`rounded-2xl border p-4 ${style.border} ${style.bg}`}>
-      <div className="mb-2 flex items-start gap-3">
-        <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${style.iconBg}`}>
+    <div className="rounded-3xl bg-white p-5 shadow-card">
+      <div className="mb-2.5 flex items-start gap-3">
+        <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl ${style.iconBg}`}>
           <IconComponent className={`h-5 w-5 ${style.icon}`} />
         </div>
         <div className="flex-1">
-          <h3 className="font-bold text-navy">{card.title}</h3>
-          <p className="mt-1 text-sm leading-relaxed text-gray-600">{card.message}</p>
+          <h3 className="text-sm font-bold text-navy">{card.title}</h3>
+          <p className="mt-1 text-sm leading-relaxed text-gray-400">{card.message}</p>
         </div>
       </div>
       {card.actions && card.actions.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2 pl-12">
+        <div className="mt-3 flex flex-wrap gap-2 pl-[52px]">
           {card.actions.map((action) =>
             action.href ? (
               <Link
                 key={action.label}
                 href={action.href}
-                className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                className={`flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors ${
                   card.type === 'urgent'
                     ? 'bg-freshness-urgent/10 text-freshness-urgent hover:bg-freshness-urgent/20'
                     : card.type === 'shopping'
@@ -93,7 +83,7 @@ function InsightCard({ card }: { card: AIInsightCard }) {
             ) : (
               <button
                 key={action.label}
-                className="flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-200"
+                className="flex items-center gap-1 rounded-xl bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-500 transition-colors hover:bg-gray-100"
               >
                 {action.action === 'freeze' && '❄️ '}
                 {action.label}
@@ -112,33 +102,33 @@ function FridgeStatsBar({
   stats: { total: number; urgent: number; caution: number; expired: number; utilizationPercent: number }
 }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4">
+    <div className="rounded-3xl bg-white p-5 shadow-card">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-sm font-semibold text-navy">냉장고 활용도</span>
         <span className="text-lg font-bold text-mint">{stats.utilizationPercent}%</span>
       </div>
-      <div className="mb-3 h-2 overflow-hidden rounded-full bg-gray-100">
+      <div className="mb-4 h-2 overflow-hidden rounded-full bg-gray-100">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-mint to-mint-dark transition-all duration-500"
+          className="h-full rounded-full bg-mint transition-all duration-500"
           style={{ width: `${stats.utilizationPercent}%` }}
         />
       </div>
-      <div className="grid grid-cols-4 gap-2 text-center">
-        <div>
+      <div className="grid grid-cols-4 gap-3">
+        <div className="rounded-2xl bg-gray-50 py-3 text-center">
           <p className="text-lg font-bold text-navy">{stats.total}</p>
-          <p className="text-xs text-gray-400">전체</p>
+          <p className="text-[11px] text-gray-400">전체</p>
         </div>
-        <div>
+        <div className="rounded-2xl bg-freshness-urgent/5 py-3 text-center">
           <p className="text-lg font-bold text-freshness-urgent">{stats.urgent}</p>
-          <p className="text-xs text-gray-400">긴급</p>
+          <p className="text-[11px] text-gray-400">긴급</p>
         </div>
-        <div>
+        <div className="rounded-2xl bg-freshness-caution/5 py-3 text-center">
           <p className="text-lg font-bold text-freshness-caution">{stats.caution}</p>
-          <p className="text-xs text-gray-400">주의</p>
+          <p className="text-[11px] text-gray-400">주의</p>
         </div>
-        <div>
+        <div className="rounded-2xl bg-gray-50 py-3 text-center">
           <p className="text-lg font-bold text-gray-400">{stats.expired}</p>
-          <p className="text-xs text-gray-400">만료</p>
+          <p className="text-[11px] text-gray-400">만료</p>
         </div>
       </div>
     </div>
@@ -147,9 +137,9 @@ function FridgeStatsBar({
 
 function SkeletonCard() {
   return (
-    <div className="animate-pulse rounded-2xl border border-gray-100 bg-white p-4">
+    <div className="animate-pulse rounded-3xl bg-white p-5 shadow-card">
       <div className="mb-3 flex items-start gap-3">
-        <div className="h-9 w-9 rounded-xl bg-gray-100" />
+        <div className="h-10 w-10 rounded-2xl bg-gray-100" />
         <div className="flex-1 space-y-2">
           <div className="h-4 w-2/3 rounded bg-gray-100" />
           <div className="h-3 w-full rounded bg-gray-50" />
@@ -164,15 +154,15 @@ export default function AIDashboardPage() {
   const { data, isLoading, error, refetch, isRefetching } = useAIInsights()
 
   return (
-    <div className="px-4 py-5">
+    <div className="px-5 py-5">
       {/* Header */}
       <div className="mb-5 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-accent-purple to-accent-blue shadow">
-            <Bot className="h-5 w-5 text-white" />
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent-purple/10">
+            <Bot className="h-6 w-6 text-accent-purple" />
           </div>
           <div>
-            <h1 className="font-bold text-navy">AI 매니저</h1>
+            <h1 className="text-lg font-bold tracking-tight text-navy">AI 매니저</h1>
             <p className="text-xs text-gray-400">
               {new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })}
             </p>
@@ -181,9 +171,9 @@ export default function AIDashboardPage() {
         <button
           onClick={() => refetch()}
           disabled={isRefetching}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200"
+          className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white shadow-card"
         >
-          <RefreshCw className={`h-4 w-4 text-gray-500 ${isRefetching ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-4 w-4 text-gray-400 ${isRefetching ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
@@ -202,14 +192,14 @@ export default function AIDashboardPage() {
 
       {/* Error */}
       {error && !isLoading && (
-        <div className="flex flex-col items-center gap-3 py-8 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-freshness-urgent/10">
-            <Trash2 className="h-7 w-7 text-freshness-urgent" />
+        <div className="flex flex-col items-center gap-3 py-12 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-freshness-urgent/10">
+            <Trash2 className="h-8 w-8 text-freshness-urgent" />
           </div>
-          <p className="text-sm text-gray-500">인사이트를 불러오지 못했어요</p>
+          <p className="text-sm text-gray-400">인사이트를 불러오지 못했어요</p>
           <button
             onClick={() => refetch()}
-            className="rounded-xl bg-mint px-4 py-2 text-sm font-semibold text-white hover:bg-mint-dark"
+            className="rounded-2xl bg-mint px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-mint/20 active:scale-[0.98] transition-transform"
           >
             다시 시도
           </button>
@@ -218,9 +208,9 @@ export default function AIDashboardPage() {
 
       {/* Data */}
       {data && !isLoading && (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 animate-stagger">
           {/* Greeting */}
-          <div className="rounded-2xl bg-gradient-to-r from-accent-purple/10 to-accent-blue/10 p-4">
+          <div className="rounded-3xl bg-gray-50 p-5">
             <p className="text-sm font-medium leading-relaxed text-navy">{data.greeting}</p>
           </div>
 
@@ -234,12 +224,12 @@ export default function AIDashboardPage() {
 
           {/* Empty state */}
           {data.cards.length === 0 && (
-            <div className="flex flex-col items-center gap-3 py-6 text-center">
-              <Bot className="h-10 w-10 text-gray-300" />
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              <Bot className="h-12 w-12 text-gray-200" />
               <p className="text-sm text-gray-400">아직 분석할 재료가 없어요</p>
               <Link
                 href="/scan"
-                className="rounded-xl bg-mint px-4 py-2 text-sm font-semibold text-white hover:bg-mint-dark"
+                className="rounded-2xl bg-mint px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-mint/20 active:scale-[0.98] transition-transform"
               >
                 식재료 등록하기
               </Link>

@@ -5,9 +5,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/hooks/useNotifications'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
-  Settings,
   LogOut,
   Bell,
   BellRing,
@@ -30,10 +28,10 @@ const RESTRICTIONS = ['채식', '비건', '할랄', '글루텐프리', '저탄�
 const ALLERGENS = ['땅콩', '갑각류', '유제품', '밀', '대두', '계란', '생선', '견과류']
 
 const PLANS = [
-  { value: 'free', label: 'Free', desc: '식재료 50개, AI 월 10회', price: '무료', color: 'border-gray-200 bg-gray-50' },
-  { value: 'plus', label: 'Plus', desc: 'AI 무제한 + 심층 분석', price: '4,900원/월', color: 'border-mint bg-mint-light' },
-  { value: 'family', label: 'Family', desc: '가족 공유 + 모든 기능', price: '7,900원/월', color: 'border-accent-blue/30 bg-blue-50' },
-  { value: 'premium', label: 'Premium', desc: '프리미엄 기능 전체', price: '12,900원/월', color: 'border-accent-purple/30 bg-purple-50' },
+  { value: 'free', label: 'Free', desc: '식재료 50개, AI 월 10회', price: '무료', active: true },
+  { value: 'plus', label: 'Plus', desc: 'AI 무제한 + 심층 분석', price: '4,900원/월', active: false },
+  { value: 'family', label: 'Family', desc: '가족 공유 + 모든 기능', price: '7,900원/월', active: false },
+  { value: 'premium', label: 'Premium', desc: '프리미엄 기능 전체', price: '12,900원/월', active: false },
 ]
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
@@ -65,8 +63,8 @@ function TagButton({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-        selected ? activeClass : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+      className={`rounded-2xl px-3.5 py-2 text-sm transition-all ${
+        selected ? activeClass : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
       }`}
     >
       {label}
@@ -126,25 +124,25 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-md">
       {/* Header */}
-      <div className="px-4 pt-5 pb-4">
-        <h1 className="text-xl font-bold text-navy">설정</h1>
+      <div className="px-5 pt-6 pb-4">
+        <h1 className="text-2xl font-bold tracking-tight text-navy">설정</h1>
       </div>
 
-      <div className="px-4 pb-8 flex flex-col gap-4">
+      <div className="px-5 pb-8 flex flex-col gap-4 animate-stagger">
         {/* Profile */}
-        <section className="rounded-2xl bg-white p-4 shadow-sm">
-          <div className="mb-3 flex items-center gap-2">
+        <section className="rounded-3xl bg-white p-5 shadow-card">
+          <div className="mb-4 flex items-center gap-2.5">
             <User className="h-4 w-4 text-mint" />
-            <h2 className="font-semibold text-navy">프로필</h2>
+            <h2 className="text-sm font-bold text-navy">프로필</h2>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-mint to-mint-dark text-xl font-bold text-white shadow">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-navy text-xl font-bold text-white">
               {userInitial}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-navy truncate">{userName}</p>
               <p className="text-sm text-gray-400 truncate">{userEmail}</p>
-              <span className="mt-1 inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+              <span className="mt-1 inline-block rounded-full bg-gray-50 px-2.5 py-0.5 text-xs text-gray-500">
                 Free 플랜
               </span>
             </div>
@@ -152,20 +150,20 @@ export default function SettingsPage() {
         </section>
 
         {/* Cooking level */}
-        <section className="rounded-2xl bg-white p-4 shadow-sm">
-          <div className="mb-3 flex items-center gap-2">
+        <section className="rounded-3xl bg-white p-5 shadow-card">
+          <div className="mb-4 flex items-center gap-2.5">
             <ChefHat className="h-4 w-4 text-mint" />
-            <h2 className="font-semibold text-navy">요리 수준</h2>
+            <h2 className="text-sm font-bold text-navy">요리 수준</h2>
           </div>
           <div className="grid grid-cols-3 gap-2">
             {COOKING_LEVELS.map((level) => (
               <button
                 key={level.value}
                 onClick={() => setCookingLevel(level.value)}
-                className={`flex flex-col items-center rounded-xl border py-3 transition-colors ${
+                className={`flex flex-col items-center rounded-2xl py-3.5 transition-all ${
                   cookingLevel === level.value
-                    ? 'border-mint bg-mint text-white'
-                    : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-mint/40'
+                    ? 'bg-navy text-white shadow-sm'
+                    : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
                 }`}
               >
                 <span className="mb-1 text-lg">{level.emoji}</span>
@@ -176,8 +174,8 @@ export default function SettingsPage() {
         </section>
 
         {/* Preferred cuisine */}
-        <section className="rounded-2xl bg-white p-4 shadow-sm">
-          <h2 className="mb-3 font-semibold text-navy">선호 요리</h2>
+        <section className="rounded-3xl bg-white p-5 shadow-card">
+          <h2 className="mb-4 text-sm font-bold text-navy">선호 요리</h2>
           <div className="flex flex-wrap gap-2">
             {CUISINES.map((c) => (
               <TagButton
@@ -185,17 +183,17 @@ export default function SettingsPage() {
                 label={c}
                 selected={selectedCuisines.includes(c)}
                 onClick={() => toggle(selectedCuisines, c, setSelectedCuisines)}
-                activeClass="bg-mint/10 text-mint border border-mint/30 font-medium"
+                activeClass="bg-mint/10 text-mint font-semibold"
               />
             ))}
           </div>
         </section>
 
         {/* Dietary restrictions */}
-        <section className="rounded-2xl bg-white p-4 shadow-sm">
-          <div className="mb-3 flex items-center gap-2">
+        <section className="rounded-3xl bg-white p-5 shadow-card">
+          <div className="mb-4 flex items-center gap-2.5">
             <Heart className="h-4 w-4 text-accent-orange" />
-            <h2 className="font-semibold text-navy">식이 제한</h2>
+            <h2 className="text-sm font-bold text-navy">식이 제한</h2>
           </div>
           <div className="flex flex-wrap gap-2">
             {RESTRICTIONS.map((r) => (
@@ -204,17 +202,17 @@ export default function SettingsPage() {
                 label={r}
                 selected={selectedRestrictions.includes(r)}
                 onClick={() => toggle(selectedRestrictions, r, setSelectedRestrictions)}
-                activeClass="bg-accent-orange/10 text-accent-orange border border-accent-orange/30 font-medium"
+                activeClass="bg-accent-orange/10 text-accent-orange font-semibold"
               />
             ))}
           </div>
         </section>
 
         {/* Allergies */}
-        <section className="rounded-2xl bg-white p-4 shadow-sm">
-          <div className="mb-3 flex items-center gap-2">
+        <section className="rounded-3xl bg-white p-5 shadow-card">
+          <div className="mb-4 flex items-center gap-2.5">
             <Shield className="h-4 w-4 text-accent-red" />
-            <h2 className="font-semibold text-navy">알레르기</h2>
+            <h2 className="text-sm font-bold text-navy">알레르기</h2>
           </div>
           <div className="flex flex-wrap gap-2">
             {ALLERGENS.map((a) => (
@@ -223,24 +221,24 @@ export default function SettingsPage() {
                 label={a}
                 selected={selectedAllergens.includes(a)}
                 onClick={() => toggle(selectedAllergens, a, setSelectedAllergens)}
-                activeClass="bg-accent-red/10 text-accent-red border border-accent-red/30 font-medium"
+                activeClass="bg-accent-red/10 text-accent-red font-semibold"
               />
             ))}
           </div>
           {selectedAllergens.length > 0 && (
-            <p className="mt-2 text-xs text-gray-400">
+            <p className="mt-3 text-xs text-gray-400">
               선택한 알레르기 재료는 레시피 추천에서 제외돼요
             </p>
           )}
         </section>
 
         {/* Notifications */}
-        <section className="rounded-2xl bg-white p-4 shadow-sm">
-          <div className="mb-3 flex items-center gap-2">
+        <section className="rounded-3xl bg-white p-5 shadow-card">
+          <div className="mb-4 flex items-center gap-2.5">
             <Bell className="h-4 w-4 text-accent-blue" />
-            <h2 className="font-semibold text-navy">알림 설정</h2>
+            <h2 className="text-sm font-bold text-navy">알림 설정</h2>
           </div>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-5">
             {[
               { key: 'expiry' as const, label: '유통기한 알림', desc: 'D-3, D-1 만료 임박 알림' },
               { key: 'weekly' as const, label: '주간 요약', desc: '매주 월요일 냉장고 현황 리포트' },
@@ -262,9 +260,9 @@ export default function SettingsPage() {
 
           {/* Push notification toggle */}
           {push.isSupported && (
-            <div className="mt-4 border-t pt-4">
+            <div className="mt-5 border-t border-gray-50 pt-5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   <BellRing className="h-4 w-4 text-accent-purple" />
                   <div>
                     <p className="text-sm font-medium text-navy">푸시 알림</p>
@@ -297,20 +295,20 @@ export default function SettingsPage() {
         </section>
 
         {/* Plan */}
-        <section className="rounded-2xl bg-white p-4 shadow-sm">
-          <div className="mb-3 flex items-center gap-2">
+        <section className="rounded-3xl bg-white p-5 shadow-card">
+          <div className="mb-4 flex items-center gap-2.5">
             <Crown className="h-4 w-4 text-accent-yellow" />
-            <h2 className="font-semibold text-navy">구독 플랜</h2>
+            <h2 className="text-sm font-bold text-navy">구독 플랜</h2>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2.5">
             {PLANS.map((plan) => (
-              <div key={plan.value} className={`rounded-xl border p-3 ${plan.color}`}>
+              <div key={plan.value} className={`rounded-2xl p-4 ${plan.active ? 'bg-mint/5' : 'bg-gray-50'}`}>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {plan.value === 'free' && <CheckCircle className="h-4 w-4 text-mint" />}
+                  <div className="flex items-center gap-2.5">
+                    {plan.active && <CheckCircle className="h-4 w-4 text-mint" />}
                     <div>
                       <span className="text-sm font-bold text-navy">{plan.label}</span>
-                      <span className="ml-2 text-xs text-gray-500">{plan.desc}</span>
+                      <span className="ml-2 text-xs text-gray-400">{plan.desc}</span>
                     </div>
                   </div>
                   <span className="text-sm font-semibold text-navy">{plan.price}</span>
@@ -318,7 +316,7 @@ export default function SettingsPage() {
               </div>
             ))}
           </div>
-          <button className="mt-3 w-full rounded-xl bg-gradient-to-r from-mint to-accent-blue py-2.5 text-sm font-bold text-white hover:opacity-90">
+          <button className="mt-4 w-full rounded-2xl bg-navy py-3 text-sm font-semibold text-white active:scale-[0.98] transition-transform">
             플랜 업그레이드
           </button>
         </section>
@@ -327,7 +325,7 @@ export default function SettingsPage() {
         <Button
           onClick={handleSave}
           disabled={isSaving}
-          className="w-full rounded-xl bg-mint py-5 text-base font-bold text-white hover:bg-mint-dark disabled:opacity-50"
+          className="w-full rounded-2xl bg-mint py-4 text-[15px] font-semibold text-white shadow-lg shadow-mint/20 hover:bg-mint-dark active:scale-[0.98] transition-transform disabled:opacity-50"
         >
           {saved ? (
             <><CheckCircle className="mr-2 h-5 w-5" /> 저장됨!</>
@@ -339,15 +337,14 @@ export default function SettingsPage() {
         </Button>
 
         {/* Logout */}
-        <Button
+        <button
           onClick={() => signOut({ callbackUrl: '/' })}
-          variant="outline"
-          className="w-full rounded-xl border-accent-red/30 py-4 text-accent-red hover:bg-accent-red/5"
+          className="w-full rounded-2xl py-3.5 text-sm font-medium text-gray-400 transition-colors hover:bg-gray-50 hover:text-accent-red"
         >
-          <LogOut className="mr-2 h-4 w-4" /> 로그아웃
-        </Button>
+          <LogOut className="mr-2 inline h-4 w-4" /> 로그아웃
+        </button>
 
-        <p className="text-center text-xs text-gray-400">FreshKeeper v1.0.0</p>
+        <p className="text-center text-xs text-gray-300">FreshKeeper v1.0.0</p>
       </div>
     </div>
   )

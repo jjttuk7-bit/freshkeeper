@@ -51,12 +51,12 @@ export default function IngredientInsightPopup({
   if (!hasContent) return null
 
   return (
-    <div className="fixed inset-x-0 bottom-20 z-50 mx-auto max-w-md px-4 animate-in slide-in-from-bottom-4 fade-in duration-300">
-      <div className="rounded-2xl border border-accent-purple/20 bg-white p-4 shadow-lg">
+    <div className="fixed inset-x-0 bottom-24 z-50 mx-auto max-w-md px-5 animate-in slide-in-from-bottom-4 fade-in duration-300">
+      <div className="rounded-3xl bg-white p-5 shadow-card">
         {/* Header */}
         <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-purple/10">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent-purple/10">
               <Lightbulb className="h-4 w-4 text-accent-purple" />
             </div>
             <span className="text-sm font-bold text-navy">
@@ -65,46 +65,46 @@ export default function IngredientInsightPopup({
           </div>
           <button
             onClick={onClose}
-            className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+            className="flex h-7 w-7 items-center justify-center rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
           >
-            <X className="h-3.5 w-3.5 text-gray-500" />
+            <X className="h-3.5 w-3.5 text-gray-400" />
           </button>
         </div>
 
         {/* Content */}
         <div className="flex flex-col gap-2">
           {advice.duplicateWarning && (
-            <div className="flex items-start gap-2 rounded-xl bg-freshness-caution/10 px-3 py-2">
+            <div className="flex items-start gap-2.5 rounded-2xl bg-freshness-caution/5 px-3.5 py-2.5">
               <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-freshness-caution" />
-              <p className="text-xs text-gray-700">{advice.duplicateWarning}</p>
+              <p className="text-xs leading-relaxed text-gray-600">{advice.duplicateWarning}</p>
             </div>
           )}
 
           {advice.storageTip && (
-            <div className="flex items-start gap-2 rounded-xl bg-mint-light px-3 py-2">
+            <div className="flex items-start gap-2.5 rounded-2xl bg-mint/5 px-3.5 py-2.5">
               <Lightbulb className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
-              <p className="text-xs text-gray-700">{advice.storageTip}</p>
+              <p className="text-xs leading-relaxed text-gray-600">{advice.storageTip}</p>
             </div>
           )}
 
           {advice.pairingTip && (
-            <div className="flex items-start gap-2 rounded-xl bg-accent-blue/5 px-3 py-2">
+            <div className="flex items-start gap-2.5 rounded-2xl bg-accent-blue/5 px-3.5 py-2.5">
               <Handshake className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent-blue" />
-              <p className="text-xs text-gray-700">{advice.pairingTip}</p>
+              <p className="text-xs leading-relaxed text-gray-600">{advice.pairingTip}</p>
             </div>
           )}
 
           {advice.quickRecipe && (
-            <div className="flex items-start gap-2 rounded-xl bg-accent-purple/5 px-3 py-2">
+            <div className="flex items-start gap-2.5 rounded-2xl bg-accent-purple/5 px-3.5 py-2.5">
               <UtensilsCrossed className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent-purple" />
-              <p className="text-xs text-gray-700">{advice.quickRecipe}</p>
+              <p className="text-xs leading-relaxed text-gray-600">{advice.quickRecipe}</p>
             </div>
           )}
 
           {advice.freezeRecommend && (
-            <div className="flex items-start gap-2 rounded-xl bg-blue-50 px-3 py-2">
-              <Snowflake className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-500" />
-              <p className="text-xs text-gray-700">
+            <div className="flex items-start gap-2.5 rounded-2xl bg-accent-blue/5 px-3.5 py-2.5">
+              <Snowflake className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent-blue" />
+              <p className="text-xs leading-relaxed text-gray-600">
                 유통기한이 짧은 식재료예요. 바로 쓰지 않으면 냉동 보관을 추천해요!
               </p>
             </div>

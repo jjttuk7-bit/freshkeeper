@@ -150,68 +150,70 @@ export default function ReceiptScanPage() {
   return (
     <div className="mx-auto max-w-md">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-4">
-        <button onClick={() => router.back()} className="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm">
+      <div className="flex items-center gap-3 px-5 py-4">
+        <button onClick={() => router.back()} className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white shadow-card">
           <ArrowLeft className="h-5 w-5 text-navy" />
         </button>
-        <h1 className="font-bold text-navy">영수증 스캔</h1>
+        <h1 className="text-lg font-bold tracking-tight text-navy">영수증 스캔</h1>
       </div>
 
-      <div className="px-4 pb-6">
+      <div className="px-5 pb-6">
         {/* Upload area */}
         <div
           onClick={() => fileRef.current?.click()}
-          className={`mb-4 flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors ${
-            preview ? 'border-accent-purple bg-purple-50' : 'border-gray-200 bg-white hover:border-accent-purple/50'
+          className={`mb-4 flex min-h-48 cursor-pointer flex-col items-center justify-center rounded-3xl transition-all ${
+            preview ? 'bg-accent-purple/5 shadow-card' : 'bg-white shadow-card hover:shadow-card-hover'
           }`}
         >
           {preview ? (
             <div className="relative w-full">
-              <img src={preview} alt="영수증 미리보기" className="max-h-48 w-full rounded-xl object-contain" />
+              <img src={preview} alt="영수증 미리보기" className="max-h-48 w-full rounded-3xl object-contain p-2" />
               {isParsing && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-black/50">
+                <div className="absolute inset-0 flex flex-col items-center justify-center rounded-3xl bg-black/50">
                   <Loader2 className="mb-2 h-8 w-8 animate-spin text-white" />
                   <p className="text-sm font-medium text-white">영수증 분석 중...</p>
                 </div>
               )}
             </div>
           ) : (
-            <>
-              <Receipt className="mb-3 h-10 w-10 text-gray-300" />
-              <p className="font-medium text-gray-500">영수증을 촬영하거나 업로드하세요</p>
-              <p className="mt-1 text-xs text-gray-400">구매 목록을 한 번에 등록해요</p>
-              <Button variant="outline" className="mt-3 rounded-xl border-accent-purple text-accent-purple hover:bg-purple-50">
-                <Upload className="mr-1.5 h-4 w-4" /> 사진 선택
-              </Button>
-            </>
+            <div className="flex flex-col items-center px-6 py-8">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent-purple/10">
+                <Receipt className="h-8 w-8 text-accent-purple" />
+              </div>
+              <p className="font-semibold text-navy">영수증을 촬영하거나 업로드하세요</p>
+              <p className="mt-1 text-sm text-gray-400">구매 목록을 한 번에 등록해요</p>
+              <button className="mt-4 flex items-center gap-1.5 rounded-2xl bg-accent-purple px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-accent-purple/20 active:scale-[0.98] transition-transform">
+                <Upload className="h-4 w-4" /> 사진 선택
+              </button>
+            </div>
           )}
         </div>
         <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
 
         {error && (
-          <div className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-accent-red">{error}</div>
+          <div className="mb-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-accent-red">{error}</div>
         )}
 
         {/* Parsed items */}
         {items.length > 0 && (
           <div className="mb-4">
             <div className="mb-3 flex items-center justify-between">
-              <p className="font-semibold text-navy">인식된 항목 ({items.length}개)</p>
-              <p className="text-sm text-gray-400">{selectedCount}개 선택</p>
+              <p className="text-sm font-semibold text-navy">인식된 항목 ({items.length}개)</p>
+              <p className="text-xs text-gray-400">{selectedCount}개 선택</p>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2.5 animate-stagger">
               {items.map((item, idx) => (
                 <div
                   key={idx}
-                  className={`rounded-xl border p-3 transition-colors ${
-                    item.selected ? 'border-accent-purple/30 bg-purple-50' : 'border-gray-100 bg-white opacity-60'
+                  className={`rounded-2xl p-4 transition-all ${
+                    item.selected ? 'bg-white shadow-card' : 'bg-gray-50 opacity-60'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => toggleItem(idx)}
-                      className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 ${
-                        item.selected ? 'border-accent-purple bg-accent-purple' : 'border-gray-300'
+                      className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full ${
+                        item.selected ? 'bg-accent-purple' : 'border-2 border-gray-200'
                       }`}
                     >
                       {item.selected && <CheckCircle className="h-4 w-4 text-white" />}
@@ -220,21 +222,21 @@ export default function ReceiptScanPage() {
                       <Input
                         value={item.name}
                         onChange={(e) => updateItem(idx, 'name', e.target.value)}
-                        className="flex-1 text-sm"
+                        className="flex-1 rounded-2xl border-0 bg-gray-50 text-sm focus:ring-2 focus:ring-accent-purple/20"
                         disabled={!item.selected}
                       />
                       <Input
                         type="number"
                         value={item.quantity}
                         onChange={(e) => updateItem(idx, 'quantity', Number(e.target.value))}
-                        className="w-16 text-sm"
+                        className="w-16 rounded-2xl border-0 bg-gray-50 text-sm focus:ring-2 focus:ring-accent-purple/20"
                         disabled={!item.selected}
                       />
-                      <span className="flex items-center text-sm text-gray-500">{item.unit}</span>
+                      <span className="flex items-center text-sm text-gray-400">{item.unit}</span>
                     </div>
                   </div>
                   {item.tip && (
-                    <p className="mt-1 pl-9 text-xs text-accent-purple">💡 {item.tip}</p>
+                    <p className="mt-1.5 pl-9 text-xs text-accent-purple">💡 {item.tip}</p>
                   )}
                   {item.estimatedPrice > 0 && (
                     <p className="mt-1 pl-9 text-xs text-gray-400">
@@ -251,7 +253,7 @@ export default function ReceiptScanPage() {
           <Button
             onClick={handleSave}
             disabled={isSaving || selectedCount === 0}
-            className="w-full rounded-xl bg-accent-purple py-5 text-base font-bold text-white hover:bg-accent-purple/90 disabled:opacity-50"
+            className="w-full rounded-2xl bg-accent-purple py-4 text-[15px] font-semibold text-white shadow-lg shadow-accent-purple/20 hover:bg-accent-purple/90 active:scale-[0.98] transition-transform disabled:opacity-50"
           >
             {isSaving ? (
               <><Loader2 className="mr-2 h-5 w-5 animate-spin" />저장 중...</>
