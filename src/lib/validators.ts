@@ -9,7 +9,7 @@ export const ingredientCreateSchema = z.object({
   unit: z.string().default('개'),
   memo: z.string().optional(),
   imageUrl: z.string().optional(),
-  purchasePrice: z.number().int().positive().optional(),
+  purchasePrice: z.number().int().nonnegative().optional(),
 })
 
 export const ingredientUpdateSchema = z.object({

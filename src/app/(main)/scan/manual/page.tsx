@@ -65,7 +65,7 @@ export default function ManualScanPage() {
       quantity: data.quantity,
       unit: data.unit,
       memo: data.memo,
-      purchasePrice: data.purchasePrice,
+      purchasePrice: data.purchasePrice || undefined,
     })
     router.push('/fridge')
   }
