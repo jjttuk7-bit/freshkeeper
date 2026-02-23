@@ -4,6 +4,10 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useIngredients, useConsumeIngredient, useWasteIngredient } from '@/hooks/useIngredients'
 import { useFridgeStore } from '@/stores/fridgeStore'
+import { useCheckNotifications } from '@/hooks/useNotifications'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
+import { NotificationCenter } from '@/components/notifications/NotificationCenter'
+import { PushPermissionBanner } from '@/components/notifications/PushPermissionBanner'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -106,6 +110,8 @@ export default function FridgePage() {
   const { data: ingredients, isLoading, refetch } = useIngredients()
   const { storageFilter, searchQuery, setStorageFilter, setSearchQuery } = useFridgeStore()
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isNotifOpen, setIsNotifOpen] = useState(false)
+  useCheckNotifications()
 
   const filtered = useMemo(() => {
     if (!ingredients) return []
@@ -136,6 +142,7 @@ export default function FridgePage() {
         <div className="mb-3 flex items-center justify-between">
           <h1 className="text-xl font-bold text-navy">내 냉장고</h1>
           <div className="flex items-center gap-2">
+            <NotificationBell onClick={() => setIsNotifOpen(true)} />
             <button
               onClick={handleRefresh}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm"
@@ -179,6 +186,9 @@ export default function FridgePage() {
           ))}
         </div>
       </div>
+
+      <PushPermissionBanner />
+      <NotificationCenter isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
 
       <div className="px-4">
         {/* Urgent alert banner */}

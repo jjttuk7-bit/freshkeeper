@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -16,18 +17,20 @@ model User {
   provider            String?
   providerId          String?
   householdSize       Int       @default(1)
-  dietaryRestrictions String    @default("[]")
-  allergies           String    @default("[]")
-  preferredCuisine    String    @default("[]")
+  dietaryRestrictions String[]
+  allergies           String[]
+  preferredCuisine    String[]
   cookingLevel        String    @default("beginner")
   plan                String    @default("free")
 
-  ingredients       Ingredient[]
-  shoppingLists     ShoppingList[]
-  notifications     Notification[]
-  preferences       UserPreference[]
-  familyMemberships FamilyMember[]
-  ownedFamilies     Family[]
+  ingredients            Ingredient[]
+  shoppingLists          ShoppingList[]
+  notifications          Notification[]
+  preferences            UserPreference[]
+  familyMemberships      FamilyMember[]
+  ownedFamilies          Family[]
+  pushSubscriptions      PushSubscription[]
+  notificationPreference NotificationPreference?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -77,11 +80,11 @@ model Recipe {
   prepTime    Int
   servings    Int     @default(2)
   calories    Int?
-  nutrition   String?
-  steps       String
-  ingredients String
+  nutrition   Json?
+  steps       Json
+  ingredients Json
   imageUrl    String?
-  tags        String  @default("[]")
+  tags        String[]
   source      String?
 
   preferences UserPreference[]
@@ -138,7 +141,7 @@ model Notification {
 
   title   String
   body    String
-  payload String?
+  payload Json?
 
   scheduledAt DateTime
   sentAt      DateTime?
@@ -200,9 +203,9 @@ model FoodDB {
   id          String @id @default(cuid())
   name        String
   category    String
-  aliases     String @default("[]")
-  avgShelfLife String
-  nutrition   String?
+  aliases      String[]
+  avgShelfLife Json
+  nutrition    Json?
   barcode     String? @unique
   imageUrl    String?
 
@@ -210,4 +213,32 @@ model FoodDB {
   updatedAt DateTime @updatedAt
 
   @@map("food_db")
+}
+
+model PushSubscription {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint String @unique
+  p256dh   String
+  auth     String
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model NotificationPreference {
+  id       String  @id @default(cuid())
+  userId   String  @unique
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiry   Boolean @default(true)
+  weekly   Boolean @default(true)
+  recipe   Boolean @default(false)
+  shopping Boolean @default(true)
+
+  updatedAt DateTime @updatedAt
+
+  @@map("notification_preferences")
 }

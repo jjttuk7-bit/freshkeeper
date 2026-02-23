@@ -1,13 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
+import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/hooks/useNotifications'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Settings,
   LogOut,
   Bell,
+  BellRing,
   User,
   ChefHat,
   Crown,
@@ -77,6 +80,9 @@ export default function SettingsPage() {
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>(['한식'])
   const [selectedRestrictions, setSelectedRestrictions] = useState<string[]>([])
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([])
+  const { data: notifPrefs } = useNotificationPreferences()
+  const updatePrefs = useUpdateNotificationPreferences()
+  const push = usePushNotifications()
   const [notifications, setNotifications] = useState({
     expiry: true,
     weekly: true,
@@ -86,12 +92,28 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // Sync from server preferences
+  useEffect(() => {
+    if (notifPrefs) {
+      setNotifications({
+        expiry: notifPrefs.expiry,
+        weekly: notifPrefs.weekly,
+        recipe: notifPrefs.recipe,
+        shopping: notifPrefs.shopping,
+      })
+    }
+  }, [notifPrefs])
+
   const toggle = (list: string[], item: string, setter: (v: string[]) => void) =>
     setter(list.includes(item) ? list.filter((i) => i !== item) : [...list, item])
 
   const handleSave = async () => {
     setIsSaving(true)
-    await new Promise((r) => setTimeout(r, 600))
+    try {
+      await updatePrefs.mutateAsync(notifications)
+    } catch {
+      // silent
+    }
     setIsSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
@@ -237,6 +259,41 @@ export default function SettingsPage() {
               </div>
             ))}
           </div>
+
+          {/* Push notification toggle */}
+          {push.isSupported && (
+            <div className="mt-4 border-t pt-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BellRing className="h-4 w-4 text-accent-purple" />
+                  <div>
+                    <p className="text-sm font-medium text-navy">푸시 알림</p>
+                    <p className="text-xs text-gray-400">
+                      {push.permission === 'denied'
+                        ? '브라우저에서 알림이 차단되었어요'
+                        : push.isSubscribed
+                          ? '브라우저 푸시 알림이 켜져있어요'
+                          : '브라우저 푸시 알림을 받으세요'}
+                    </p>
+                  </div>
+                </div>
+                {push.permission === 'denied' ? (
+                  <span className="text-xs text-gray-400">차단됨</span>
+                ) : (
+                  <Toggle
+                    checked={push.isSubscribed}
+                    onChange={() => {
+                      if (push.isSubscribed) {
+                        push.unsubscribe()
+                      } else {
+                        push.subscribe()
+                      }
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Plan */}

@@ -57,3 +57,16 @@ export const signupSchema = z.object({
 export const familyInviteSchema = z.object({
   inviteCode: z.string().min(1, '초대 코드를 입력해주세요'),
 })
+
+export const pushSubscriptionSchema = z.object({
+  endpoint: z.string().url('올바른 endpoint URL이 필요합니다'),
+  p256dh: z.string().min(1, 'p256dh 키가 필요합니다'),
+  auth: z.string().min(1, 'auth 키가 필요합니다'),
+})
+
+export const notificationPreferencesSchema = z.object({
+  expiry: z.boolean().optional(),
+  weekly: z.boolean().optional(),
+  recipe: z.boolean().optional(),
+  shopping: z.boolean().optional(),
+})

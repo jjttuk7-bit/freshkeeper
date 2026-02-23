@@ -15,17 +15,7 @@ export async function GET(_request: NextRequest, { params }: Params): Promise<Ne
       return errorResponse('NOT_FOUND', '레시피를 찾을 수 없습니다', 404)
     }
 
-    const parsed = {
-      ...recipe,
-      steps: (() => { try { return JSON.parse(recipe.steps) } catch { return [] } })(),
-      ingredients: (() => { try { return JSON.parse(recipe.ingredients) } catch { return [] } })(),
-      tags: (() => { try { return JSON.parse(recipe.tags) } catch { return [] } })(),
-      nutrition: recipe.nutrition
-        ? (() => { try { return JSON.parse(recipe.nutrition as string) } catch { return null } })()
-        : null,
-    }
-
-    return successResponse(parsed)
+    return successResponse(recipe)
   } catch (error) {
     return handleApiError(error)
   }

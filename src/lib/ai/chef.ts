@@ -1,3 +1,5 @@
+import { GoogleGenerativeAI } from '@google/generative-ai'
+
 export interface ChefResponse {
   message: string
   recipes?: {
@@ -75,7 +77,7 @@ export async function getChefResponse(
   userMessage: string,
   ingredients?: IngredientContext[]
 ): Promise<ChefResponse> {
-  const apiKey = process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY
 
   if (!apiKey) {
     const idx = Math.floor(Math.random() * MOCK_RESPONSES.length)
@@ -102,46 +104,14 @@ export async function getChefResponse(
 \`\`\``
 
   try {
-    if (process.env.ANTHROPIC_API_KEY) {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': process.env.ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 2000,
-          system: systemPrompt,
-          messages: [{ role: 'user', content: userMessage }],
-        }),
-        signal: AbortSignal.timeout(30000),
-      })
-      const data = await res.json()
-      const text = data.content?.[0]?.text ?? ''
-      return parseChefResponse(text)
-    }
-
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
-        max_tokens: 2000,
-        temperature: 0.7,
-      }),
-      signal: AbortSignal.timeout(30000),
+    const genAI = new GoogleGenerativeAI(apiKey)
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash',
+      systemInstruction: systemPrompt,
     })
-    const data = await res.json()
-    const text = data.choices?.[0]?.message?.content ?? ''
+
+    const result = await model.generateContent(userMessage)
+    const text = result.response.text()
     return parseChefResponse(text)
   } catch {
     return MOCK_RESPONSES[0]

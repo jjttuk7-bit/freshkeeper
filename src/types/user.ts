@@ -44,3 +44,10 @@ export interface Notification {
   status: 'pending' | 'sent' | 'read' | 'failed'
   createdAt: string
 }
+
+export interface NotificationPreferences {
+  expiry: boolean
+  weekly: boolean
+  recipe: boolean
+  shopping: boolean
+}
