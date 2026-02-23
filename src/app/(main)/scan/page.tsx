@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Camera, FileText, Receipt, Barcode, ChevronRight } from 'lucide-react'
+import { Camera, FileText, Receipt, ChevronRight } from 'lucide-react'
 
 const SCAN_METHODS = [
   {
@@ -36,17 +36,6 @@ const SCAN_METHODS = [
     iconColor: 'text-accent-purple',
     badge: '일괄등록',
     badgeColor: 'bg-accent-purple text-white',
-  },
-  {
-    href: '/scan/barcode',
-    icon: Barcode,
-    emoji: '📊',
-    title: '바코드 스캔',
-    desc: '바코드 번호로 식품 정보를 자동으로 가져와요',
-    color: 'bg-orange-50',
-    iconColor: 'text-accent-orange',
-    badge: null,
-    badgeColor: '',
   },
 ]
 
