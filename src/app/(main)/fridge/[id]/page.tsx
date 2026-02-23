@@ -46,6 +46,13 @@ export default function IngredientDetailPage() {
 
   const [isEditing, setIsEditing] = useState(false)
   const [editData, setEditData] = useState<IngredientUpdateInput>({})
+  const [daysLeft, setDaysLeft] = useState(0)
+
+  useEffect(() => {
+    if (ingredient?.expiryDate) {
+      setDaysLeft(differenceInDays(parseISO(ingredient.expiryDate), new Date()))
+    }
+  }, [ingredient?.expiryDate])
 
   if (isLoading) {
     return (
@@ -66,12 +73,7 @@ export default function IngredientDetailPage() {
     )
   }
 
-  const [daysLeft, setDaysLeft] = useState(0)
   const category = CATEGORIES[ingredient.category]
-
-  useEffect(() => {
-    setDaysLeft(differenceInDays(parseISO(ingredient.expiryDate), new Date()))
-  }, [ingredient.expiryDate])
 
   const startEdit = () => {
     setEditData({
