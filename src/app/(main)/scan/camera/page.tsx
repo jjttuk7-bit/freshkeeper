@@ -30,7 +30,8 @@ interface RecognizedItem {
 
 export default function CameraPage() {
   const router = useRouter()
-  const fileRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
   const createIngredient = useCreateIngredient()
 
   const [preview, setPreview] = useState<string | null>(null)
@@ -103,7 +104,6 @@ export default function CameraPage() {
 
     setIsSaving(true)
     try {
-      const expiryDate = new Date()
       await Promise.all(
         toSave.map((item) => {
           const expiry = new Date()
@@ -145,9 +145,8 @@ export default function CameraPage() {
       <div className="px-4 pb-6">
         {/* Upload area */}
         <div
-          onClick={() => fileRef.current?.click()}
-          className={`mb-4 flex min-h-48 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors ${
-            preview ? 'border-mint bg-mint-light' : 'border-gray-200 bg-white hover:border-mint/50'
+          className={`mb-4 flex min-h-48 flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors ${
+            preview ? 'border-mint bg-mint-light' : 'border-gray-200 bg-white'
           }`}
         >
           {preview ? (
@@ -166,17 +165,18 @@ export default function CameraPage() {
               <p className="font-medium text-gray-500">사진을 선택하거나 촬영하세요</p>
               <p className="mt-1 text-sm text-gray-400">여러 식재료를 한 번에 인식해요</p>
               <div className="mt-3 flex items-center gap-2">
-                <Button variant="outline" className="rounded-xl border-mint text-mint hover:bg-mint-light">
+                <Button variant="outline" className="rounded-xl border-mint text-mint hover:bg-mint-light" onClick={() => cameraRef.current?.click()}>
                   <Camera className="mr-1.5 h-4 w-4" /> 촬영
                 </Button>
-                <Button variant="outline" className="rounded-xl">
+                <Button variant="outline" className="rounded-xl" onClick={() => galleryRef.current?.click()}>
                   <Upload className="mr-1.5 h-4 w-4" /> 갤러리
                 </Button>
               </div>
             </>
           )}
         </div>
-        <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+        <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+        <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
 
         {/* Error */}
         {error && (
@@ -186,7 +186,7 @@ export default function CameraPage() {
         {/* Retry button */}
         {preview && !isRecognizing && (
           <button
-            onClick={() => fileRef.current?.click()}
+            onClick={() => galleryRef.current?.click()}
             className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-2.5 text-sm text-gray-500"
           >
             <RefreshCw className="h-4 w-4" /> 다른 사진 선택
