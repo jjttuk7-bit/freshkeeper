@@ -40,15 +40,30 @@ export default function ReceiptScanPage() {
     setItems([])
 
     try {
-      const formData = new FormData()
-      formData.append('image', file)
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader()
+        r.onload = () => resolve((r.result as string).split(',')[1])
+        r.onerror = reject
+        r.readAsDataURL(file)
+      })
 
-      const res = await fetch('/api/ai/ocr', { method: 'POST', body: formData })
+      const res = await fetch('/api/ai/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 }),
+      })
       const json = await res.json()
       if (!json.success) throw new Error(json.error?.message)
 
-      const parsed: ParsedItem[] = (json.data?.items ?? []).map(
-        (item: Omit<ParsedItem, 'selected'>) => ({ ...item, selected: true })
+      const ocrItems = json.data?.items ?? []
+      const parsed: ParsedItem[] = ocrItems.map(
+        (item: { name: string; price: number; quantity: number }) => ({
+          name: item.name,
+          quantity: item.quantity,
+          unit: '개',
+          estimatedPrice: item.price,
+          selected: true,
+        })
       )
       setItems(parsed)
     } catch {
