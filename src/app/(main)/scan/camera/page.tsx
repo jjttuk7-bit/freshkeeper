@@ -56,18 +56,27 @@ export default function CameraPage() {
     setRecognized([])
 
     try {
-      const formData = new FormData()
-      formData.append('image', file)
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const result = reader.result as string
+          resolve(result.split(',')[1])
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
 
       const res = await fetch('/api/ai/recognize', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 }),
       })
       const json = await res.json()
 
       if (!json.success) throw new Error(json.error?.message)
 
-      const items: RecognizedItem[] = (json.data?.ingredients ?? []).map(
+      const data = Array.isArray(json.data) ? json.data : (json.data?.ingredients ?? [])
+      const items: RecognizedItem[] = data.map(
         (item: Omit<RecognizedItem, 'selected' | 'expiryDays'>) => ({
           ...item,
           selected: true,
