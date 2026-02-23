@@ -111,7 +111,7 @@ export default function AnalyticsPage() {
                     tickLine={false}
                   />
                   <Tooltip
-                    formatter={(value: number) => [`${value.toLocaleString()}원`, '식비']}
+                    formatter={(value) => [`${Number(value ?? 0).toLocaleString()}원`, '식비']}
                     labelFormatter={formatMonth}
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
                   />
@@ -148,7 +148,7 @@ export default function AnalyticsPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => [`${value.toLocaleString()}원`]}
+                    formatter={(value) => [`${Number(value ?? 0).toLocaleString()}원`]}
                     labelFormatter={(label) => CATEGORY_LABELS[label] ?? label}
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
                   />
@@ -241,7 +241,7 @@ export default function AnalyticsPage() {
                   <XAxis dataKey="month" tickFormatter={formatMonth} tick={{ fontSize: 11, fill: '#A0AEC0' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: '#A0AEC0' }} axisLine={false} tickLine={false} />
                   <Tooltip
-                    formatter={(value: number, name: string) => [value, name === 'totalWasted' ? '폐기' : '소비']}
+                    formatter={(value, name) => [Number(value ?? 0), name === 'totalWasted' ? '폐기' : '소비']}
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
                   />
                   <Bar dataKey="totalConsumed" fill="#00D4AA" radius={[4, 4, 0, 0]} name="소비" />
