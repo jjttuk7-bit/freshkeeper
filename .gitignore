@@ -42,7 +42,9 @@ next-env.d.ts
 /public/uploads/*
 !/public/uploads/.gitkeep
 
+# screenshots
+*.png
+
 # omc
 .omc/
-.playwright-mcp/
 .playwright-mcp/
