@@ -24,8 +24,9 @@ interface RecognizedItem {
   unit: string
   freshness: string
   confidence: number
+  storageType: 'fridge' | 'freezer' | 'room'
+  shelfLifeDays: number
   selected: boolean
-  expiryDays: number
 }
 
 export default function CameraPage() {
@@ -78,10 +79,11 @@ export default function CameraPage() {
 
       const data = Array.isArray(json.data) ? json.data : (json.data?.ingredients ?? [])
       const items: RecognizedItem[] = data.map(
-        (item: Omit<RecognizedItem, 'selected' | 'expiryDays'>) => ({
+        (item: Omit<RecognizedItem, 'selected'>) => ({
           ...item,
+          storageType: item.storageType || 'fridge',
+          shelfLifeDays: item.shelfLifeDays || 7,
           selected: true,
-          expiryDays: 7,
         })
       )
       setRecognized(items)
@@ -107,11 +109,11 @@ export default function CameraPage() {
       await Promise.all(
         toSave.map((item) => {
           const expiry = new Date()
-          expiry.setDate(expiry.getDate() + item.expiryDays)
+          expiry.setDate(expiry.getDate() + item.shelfLifeDays)
           const payload: IngredientCreateInput = {
             name: item.name,
             category: item.category,
-            storageType: 'fridge',
+            storageType: item.storageType,
             expiryDate: expiry.toISOString(),
             quantity: item.quantity,
             unit: item.unit,
@@ -215,7 +217,7 @@ export default function CameraPage() {
                   <div className="flex-1">
                     <p className="font-medium text-navy">{item.name}</p>
                     <p className="text-xs text-gray-400">
-                      {item.quantity}{item.unit} · 신선도 {Math.round(item.confidence * 100)}%
+                      {item.quantity}{item.unit} · {{ fridge: '냉장', freezer: '냉동', room: '실온' }[item.storageType]} · D-{item.shelfLifeDays}
                     </p>
                   </div>
                   <div className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
