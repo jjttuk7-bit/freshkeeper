@@ -2,13 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Refrigerator, PlusCircle, ChefHat, ShoppingCart, MoreHorizontal } from 'lucide-react'
+import { Refrigerator, PlusCircle, Bot, ShoppingCart, MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS: { href: string; icon: typeof Refrigerator; label: string; primary?: boolean }[] = [
   { href: '/fridge', icon: Refrigerator, label: '냉장고' },
   { href: '/scan', icon: PlusCircle, label: '등록', primary: true },
-  { href: '/chef', icon: ChefHat, label: 'AI 셰프' },
+  { href: '/ai', icon: Bot, label: 'AI' },
   { href: '/shopping', icon: ShoppingCart, label: '장보기' },
   { href: '/settings', icon: MoreHorizontal, label: '더보기' },
 ]

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import type { ChefMessage } from '@/types/recipe'
+import { useChefStore } from '@/stores/chefStore'
 
 export function useChef() {
   const [messages, setMessages] = useState<ChefMessage[]>([
@@ -13,6 +14,8 @@ export function useChef() {
     },
   ])
   const [isLoading, setIsLoading] = useState(false)
+  const messagesRef = useRef(messages)
+  messagesRef.current = messages
 
   const sendMessage = useCallback(async (content: string) => {
     const userMsg: ChefMessage = {
@@ -25,19 +28,60 @@ export function useChef() {
     setIsLoading(true)
 
     try {
+      // Build conversation history from previous messages (last 10 for context)
+      const prev = messagesRef.current
+      const history = prev
+        .filter((m) => m.id !== 'welcome')
+        .slice(-10)
+        .map((m) => ({ role: m.role, content: m.content }))
+
       const res = await fetch('/api/ai/chef', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: content }),
+        body: JSON.stringify({ message: content, history }),
       })
       const json = await res.json()
       const data = json.data ?? json
+
+      // Map recipes to include required fields for Recipe type
+      const recipes = data.recipes?.map((r: Record<string, unknown>, i: number) => ({
+        id: `chef-${Date.now()}-${i}`,
+        prepTime: 0,
+        servings: r.servings ?? 2,
+        calories: r.calories ?? null,
+        nutrition: null,
+        imageUrl: null,
+        source: 'ai-generated',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        ...r,
+        ingredients: Array.isArray(r.ingredients)
+          ? r.ingredients.map((ing: Record<string, unknown>) => ({
+              name: ing.name ?? '',
+              amount: ing.amount ?? '',
+              unit: '',
+              required: true,
+              inFridge: ing.inFridge ?? false,
+            }))
+          : [],
+        steps: Array.isArray(r.steps)
+          ? r.steps.map((s: unknown, idx: number) => ({
+              order: idx + 1,
+              instruction: String(s),
+            }))
+          : [],
+      }))
+
+      // Cache AI-generated recipes in store for detail page access
+      if (recipes?.length) {
+        useChefStore.getState().addRecipes(recipes)
+      }
 
       const assistantMsg: ChefMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: data.message ?? '레시피를 준비했어요!',
-        recipes: data.recipes,
+        recipes,
         timestamp: new Date().toISOString(),
       }
       setMessages((prev) => [...prev, assistantMsg])

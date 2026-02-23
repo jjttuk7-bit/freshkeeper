@@ -1,16 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useCreateIngredient } from '@/hooks/useIngredients'
+import { useCreateIngredient, useIngredients } from '@/hooks/useIngredients'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CATEGORY_OPTIONS } from '@/constants/categories'
-import { ArrowLeft, Plus } from 'lucide-react'
+import { STORAGE_TYPES } from '@/constants/storage-types'
+import { classifyFood, getFoodTip, type FoodClassification } from '@/lib/food-classifier'
+import { getIngredientAdvice, type IngredientAdvice } from '@/lib/ai/ingredient-advisor'
+import IngredientInsightPopup from '@/components/ai/IngredientInsightPopup'
+import { ArrowLeft, Plus, Lightbulb } from 'lucide-react'
 
 const UNIT_OPTIONS = ['개', 'g', 'kg', 'ml', 'L', '팩', '봉', '묶음', '장']
 const STORAGE_OPTIONS = [
@@ -35,7 +39,12 @@ type ManualFormData = z.infer<typeof manualSchema>
 export default function ManualScanPage() {
   const router = useRouter()
   const createIngredient = useCreateIngredient()
+  const { data: existingIngredients } = useIngredients()
   const [todayStr, setTodayStr] = useState('')
+  const [recommendation, setRecommendation] = useState<FoodClassification | null>(null)
+  const [tip, setTip] = useState<string | null>(null)
+  const [advice, setAdvice] = useState<{ name: string; advice: IngredientAdvice } | null>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     setTodayStr(new Date().toISOString().split('T')[0])
@@ -45,6 +54,7 @@ export default function ManualScanPage() {
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ManualFormData>({
     resolver: zodResolver(manualSchema),
@@ -55,6 +65,31 @@ export default function ManualScanPage() {
       unit: '개',
     },
   })
+
+  const handleNameChange = useCallback(
+    (name: string) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      debounceRef.current = setTimeout(() => {
+        const result = classifyFood(name)
+        setRecommendation(result)
+        setTip(getFoodTip(name))
+        if (result) {
+          setValue('category', result.category)
+          setValue('storageType', result.defaultStorage)
+          const days = result.shelfLife[result.defaultStorage]
+          const expiry = new Date()
+          expiry.setDate(expiry.getDate() + days)
+          setValue('expiryDate', expiry.toISOString().split('T')[0])
+
+          // Show AI advice popup
+          const existingNames = existingIngredients?.map((i) => i.name) ?? []
+          const adviceResult = getIngredientAdvice(name, existingNames)
+          setAdvice({ name, advice: adviceResult })
+        }
+      }, 300)
+    },
+    [setValue, existingIngredients]
+  )
 
   const onSubmit = async (data: ManualFormData) => {
     await createIngredient.mutateAsync({
@@ -93,10 +128,25 @@ export default function ManualScanPage() {
             </Label>
             <Input
               placeholder="예: 당근, 소고기, 우유"
-              {...register('name')}
+              {...register('name', {
+                onChange: (e) => handleNameChange(e.target.value),
+              })}
             />
             {errors.name && (
               <p className="mt-1 text-xs text-accent-red">{errors.name.message}</p>
+            )}
+            {recommendation && (
+              <div className="mt-2 flex items-start gap-2 rounded-xl bg-mint-light px-3 py-2.5">
+                <Lightbulb className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                <div className="text-xs text-mint-dark">
+                  <p>
+                    <span className="font-semibold">{recommendation.name}</span>은{' '}
+                    {STORAGE_TYPES[recommendation.defaultStorage].label} 보관을 추천해요
+                    (약 {recommendation.shelfLife[recommendation.defaultStorage]}일)
+                  </p>
+                  {tip && <p className="mt-1">{tip}</p>}
+                </div>
+              </div>
             )}
           </div>
 
@@ -234,6 +284,15 @@ export default function ManualScanPage() {
           </Button>
         </div>
       </form>
+
+      {/* AI Insight Popup */}
+      {advice && (
+        <IngredientInsightPopup
+          advice={advice.advice}
+          ingredientName={advice.name}
+          onClose={() => setAdvice(null)}
+        />
+      )}
     </div>
   )
 }

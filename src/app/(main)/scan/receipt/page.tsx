@@ -1,11 +1,15 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { useCreateIngredient } from '@/hooks/useIngredients'
+import { useCreateIngredient, useIngredients } from '@/hooks/useIngredients'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import type { IngredientCreateInput } from '@/types/ingredient'
+import type { IngredientCreateInput, IngredientCategory, StorageType } from '@/types/ingredient'
+import { classifyFood, getFoodTip } from '@/lib/food-classifier'
+import { getIngredientAdvice, type IngredientAdvice } from '@/lib/ai/ingredient-advisor'
+import IngredientInsightPopup from '@/components/ai/IngredientInsightPopup'
+import { useUiStore } from '@/stores/uiStore'
 import { ArrowLeft, Upload, Loader2, CheckCircle, Plus, Receipt } from 'lucide-react'
 
 interface ParsedItem {
@@ -13,6 +17,10 @@ interface ParsedItem {
   quantity: number
   unit: string
   estimatedPrice: number
+  category: IngredientCategory
+  storageType: StorageType
+  shelfLifeDays: number
+  tip: string | null
   selected: boolean
 }
 
@@ -20,12 +28,24 @@ export default function ReceiptScanPage() {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
   const createIngredient = useCreateIngredient()
+  const { data: existingIngredients } = useIngredients()
+  const addToast = useUiStore((s) => s.addToast)
 
   const [preview, setPreview] = useState<string | null>(null)
   const [isParsing, setIsParsing] = useState(false)
   const [items, setItems] = useState<ParsedItem[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [advice, setAdvice] = useState<{ name: string; advice: IngredientAdvice } | null>(null)
+
+  const showAdviceForItem = useCallback(
+    (itemName: string) => {
+      const existingNames = existingIngredients?.map((i) => i.name) ?? []
+      const result = getIngredientAdvice(itemName, existingNames)
+      setAdvice({ name: itemName, advice: result })
+    },
+    [existingIngredients]
+  )
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -57,15 +77,27 @@ export default function ReceiptScanPage() {
 
       const ocrItems = json.data?.items ?? []
       const parsed: ParsedItem[] = ocrItems.map(
-        (item: { name: string; price: number; quantity: number }) => ({
-          name: item.name,
-          quantity: item.quantity,
-          unit: '개',
-          estimatedPrice: item.price,
-          selected: true,
-        })
+        (item: { name: string; price: number; quantity: number }) => {
+          const classification = classifyFood(item.name)
+          return {
+            name: item.name,
+            quantity: item.quantity,
+            unit: '개',
+            estimatedPrice: item.price,
+            category: classification?.category ?? 'other',
+            storageType: classification?.defaultStorage ?? 'fridge',
+            shelfLifeDays: classification
+              ? classification.shelfLife[classification.defaultStorage]
+              : 7,
+            tip: getFoodTip(item.name),
+            selected: true,
+          }
+        }
       )
       setItems(parsed)
+      if (parsed.length > 0) {
+        showAdviceForItem(parsed[0].name)
+      }
     } catch {
       setError('영수증 인식에 실패했어요. 더 선명한 사진으로 다시 시도해주세요')
     } finally {
@@ -85,15 +117,14 @@ export default function ReceiptScanPage() {
 
     setIsSaving(true)
     try {
-      const expiryDate = new Date()
-      expiryDate.setDate(expiryDate.getDate() + 7)
-
       await Promise.all(
         toSave.map((item) => {
+          const expiryDate = new Date()
+          expiryDate.setDate(expiryDate.getDate() + item.shelfLifeDays)
           const payload: IngredientCreateInput = {
             name: item.name,
-            category: 'other',
-            storageType: 'fridge',
+            category: item.category,
+            storageType: item.storageType,
             expiryDate: expiryDate.toISOString(),
             quantity: item.quantity,
             unit: item.unit,
@@ -102,6 +133,10 @@ export default function ReceiptScanPage() {
           return createIngredient.mutateAsync(payload)
         })
       )
+      const tipItem = toSave.find((i) => i.tip)
+      if (tipItem?.tip) {
+        addToast(`💡 ${tipItem.name}: ${tipItem.tip}`, 'info')
+      }
       router.push('/fridge')
     } catch {
       setError('저장 중 오류가 발생했어요')
@@ -198,8 +233,11 @@ export default function ReceiptScanPage() {
                       <span className="flex items-center text-sm text-gray-500">{item.unit}</span>
                     </div>
                   </div>
+                  {item.tip && (
+                    <p className="mt-1 pl-9 text-xs text-accent-purple">💡 {item.tip}</p>
+                  )}
                   {item.estimatedPrice > 0 && (
-                    <p className="mt-1.5 pl-9 text-xs text-gray-400">
+                    <p className="mt-1 pl-9 text-xs text-gray-400">
                       {item.estimatedPrice.toLocaleString()}원
                     </p>
                   )}
@@ -223,6 +261,15 @@ export default function ReceiptScanPage() {
           </Button>
         )}
       </div>
+
+      {/* AI Insight Popup */}
+      {advice && (
+        <IngredientInsightPopup
+          advice={advice.advice}
+          ingredientName={advice.name}
+          onClose={() => setAdvice(null)}
+        />
+      )}
     </div>
   )
 }

@@ -1,20 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireAuth, successResponse, errorResponse, handleApiError } from '@/lib/api'
-import { getChefResponse } from '@/lib/ai/chef'
+import { requireAuth, successResponse, handleApiError } from '@/lib/api'
+import { getInsights } from '@/lib/ai/insights'
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
     const user = await requireAuth()
-    const body = await request.json()
-
-    const { message, history } = body as {
-      message?: string
-      history?: { role: 'user' | 'assistant'; content: string }[]
-    }
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      return errorResponse('VALIDATION_ERROR', '메시지를 입력해주세요', 400)
-    }
 
     const rawIngredients = await prisma.ingredient.findMany({
       where: {
@@ -40,9 +31,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return { name: ing.name, daysLeft, category: ing.category }
     })
 
-    const response = await getChefResponse(message.trim(), ingredientContext, history)
+    const insights = await getInsights(ingredientContext)
 
-    return successResponse(response)
+    return successResponse(insights)
   } catch (error) {
     return handleApiError(error)
   }

@@ -1,12 +1,16 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { useCreateIngredient } from '@/hooks/useIngredients'
+import { useCreateIngredient, useIngredients } from '@/hooks/useIngredients'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CATEGORIES } from '@/constants/categories'
 import type { IngredientCreateInput, IngredientCategory } from '@/types/ingredient'
+import { classifyFood, getFoodTip } from '@/lib/food-classifier'
+import { getIngredientAdvice, type IngredientAdvice } from '@/lib/ai/ingredient-advisor'
+import IngredientInsightPopup from '@/components/ai/IngredientInsightPopup'
+import { useUiStore } from '@/stores/uiStore'
 import {
   ArrowLeft,
   Camera,
@@ -26,6 +30,7 @@ interface RecognizedItem {
   confidence: number
   storageType: 'fridge' | 'freezer' | 'room'
   shelfLifeDays: number
+  tip: string | null
   selected: boolean
 }
 
@@ -34,12 +39,24 @@ export default function CameraPage() {
   const cameraRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
   const createIngredient = useCreateIngredient()
+  const { data: existingIngredients } = useIngredients()
+  const addToast = useUiStore((s) => s.addToast)
 
   const [preview, setPreview] = useState<string | null>(null)
   const [isRecognizing, setIsRecognizing] = useState(false)
   const [recognized, setRecognized] = useState<RecognizedItem[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [advice, setAdvice] = useState<{ name: string; advice: IngredientAdvice } | null>(null)
+
+  const showAdviceForItem = useCallback(
+    (itemName: string) => {
+      const existingNames = existingIngredients?.map((i) => i.name) ?? []
+      const result = getIngredientAdvice(itemName, existingNames)
+      setAdvice({ name: itemName, advice: result })
+    },
+    [existingIngredients]
+  )
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -79,14 +96,32 @@ export default function CameraPage() {
 
       const data = Array.isArray(json.data) ? json.data : (json.data?.ingredients ?? [])
       const items: RecognizedItem[] = data.map(
-        (item: Omit<RecognizedItem, 'selected'>) => ({
-          ...item,
-          storageType: item.storageType || 'fridge',
-          shelfLifeDays: item.shelfLifeDays || 7,
-          selected: true,
-        })
+        (item: Omit<RecognizedItem, 'selected'>) => {
+          const classification = classifyFood(item.name)
+          const tip = getFoodTip(item.name)
+          if (classification) {
+            return {
+              ...item,
+              category: classification.category,
+              storageType: classification.defaultStorage,
+              shelfLifeDays: classification.shelfLife[classification.defaultStorage],
+              tip,
+              selected: true,
+            }
+          }
+          return {
+            ...item,
+            storageType: item.storageType || 'fridge',
+            shelfLifeDays: item.shelfLifeDays || 7,
+            tip,
+            selected: true,
+          }
+        }
       )
       setRecognized(items)
+      if (items.length > 0) {
+        showAdviceForItem(items[0].name)
+      }
     } catch (err) {
       setError('AI 인식에 실패했어요. 다시 시도하거나 직접 입력해주세요')
     } finally {
@@ -121,6 +156,10 @@ export default function CameraPage() {
           return createIngredient.mutateAsync(payload)
         })
       )
+      const tipItem = toSave.find((i) => i.tip)
+      if (tipItem?.tip) {
+        addToast(`💡 ${tipItem.name}: ${tipItem.tip}`, 'info')
+      }
       router.push('/fridge')
     } catch {
       setError('저장 중 오류가 발생했어요')
@@ -219,6 +258,9 @@ export default function CameraPage() {
                     <p className="text-xs text-gray-400">
                       {item.quantity}{item.unit} · {{ fridge: '냉장', freezer: '냉동', room: '실온' }[item.storageType]} · D-{item.shelfLifeDays}
                     </p>
+                    {item.tip && (
+                      <p className="mt-0.5 text-xs text-mint-dark">💡 {item.tip}</p>
+                    )}
                   </div>
                   <div className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
                     item.selected ? 'border-mint bg-mint' : 'border-gray-300'
@@ -246,6 +288,15 @@ export default function CameraPage() {
           </Button>
         )}
       </div>
+
+      {/* AI Insight Popup */}
+      {advice && (
+        <IngredientInsightPopup
+          advice={advice.advice}
+          ingredientName={advice.name}
+          onClose={() => setAdvice(null)}
+        />
+      )}
     </div>
   )
 }
