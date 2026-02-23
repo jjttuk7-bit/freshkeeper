@@ -1,26 +1,32 @@
 'use client'
 
-import { useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { BottomNav } from '@/components/layout/BottomNav'
 import { Camera, Shield, ChefHat, ArrowRight } from 'lucide-react'
+
+const FridgePage = dynamic(() => import('./(main)/fridge/page'), { ssr: false })
 
 export default function HomePage() {
   const { data: session, status } = useSession()
-  const router = useRouter()
 
-  useEffect(() => {
-    if (status === 'authenticated') {
-      router.push('/fridge')
-    }
-  }, [status, router])
-
-  if (status === 'loading' || session) {
+  if (status === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-mint border-t-transparent" />
+      </div>
+    )
+  }
+
+  if (session) {
+    return (
+      <div className="flex min-h-screen flex-col bg-bg">
+        <main className="flex-1 pb-24">
+          <FridgePage />
+        </main>
+        <BottomNav />
       </div>
     )
   }
