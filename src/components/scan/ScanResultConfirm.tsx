@@ -23,7 +23,7 @@ export const ScanResultConfirm = ({
   isSubmitting = false,
 }: ScanResultConfirmProps) => {
   const [editableItems, setEditableItems] = useState<EditableIngredient[]>(
-    items.map((item, i) => ({ ...item, tempId: `${i}-${Date.now()}` }))
+    items.map((item, i) => ({ ...item, tempId: `item-${i}` }))
   )
 
   const updateItem = (tempId: string, field: keyof RecognizedIngredient, value: string | number) => {

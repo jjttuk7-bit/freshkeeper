@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -34,6 +35,11 @@ type ManualFormData = z.infer<typeof manualSchema>
 export default function ManualScanPage() {
   const router = useRouter()
   const createIngredient = useCreateIngredient()
+  const [todayStr, setTodayStr] = useState('')
+
+  useEffect(() => {
+    setTodayStr(new Date().toISOString().split('T')[0])
+  }, [])
 
   const {
     register,
@@ -161,7 +167,7 @@ export default function ManualScanPage() {
             </Label>
             <Input
               type="date"
-              min={new Date().toISOString().split('T')[0]}
+              min={todayStr}
               {...register('expiryDate')}
             />
             {errors.expiryDate && (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useIngredient, useUpdateIngredient, useConsumeIngredient, useWasteIngredient, useDeleteIngredient } from '@/hooks/useIngredients'
 import { Button } from '@/components/ui/button'
@@ -66,8 +66,12 @@ export default function IngredientDetailPage() {
     )
   }
 
-  const daysLeft = differenceInDays(parseISO(ingredient.expiryDate), new Date())
+  const [daysLeft, setDaysLeft] = useState(0)
   const category = CATEGORIES[ingredient.category]
+
+  useEffect(() => {
+    setDaysLeft(differenceInDays(parseISO(ingredient.expiryDate), new Date()))
+  }, [ingredient.expiryDate])
 
   const startEdit = () => {
     setEditData({

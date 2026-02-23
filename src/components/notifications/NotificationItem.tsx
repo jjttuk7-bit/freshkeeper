@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { AlertTriangle, Clock, Calendar, ShoppingCart, ChefHat } from 'lucide-react'
 import { formatDistanceToNow, parseISO } from 'date-fns'
 import { ko } from 'date-fns/locale'
@@ -46,10 +47,16 @@ function getNotificationBg(type: string, isRead: boolean) {
 
 export function NotificationItem({ notification, onRead }: NotificationItemProps) {
   const isRead = !!notification.readAt
-  const timeAgo = formatDistanceToNow(parseISO(notification.createdAt), {
-    addSuffix: true,
-    locale: ko,
-  })
+  const [timeAgo, setTimeAgo] = useState('')
+
+  useEffect(() => {
+    setTimeAgo(
+      formatDistanceToNow(parseISO(notification.createdAt), {
+        addSuffix: true,
+        locale: ko,
+      })
+    )
+  }, [notification.createdAt])
 
   return (
     <button

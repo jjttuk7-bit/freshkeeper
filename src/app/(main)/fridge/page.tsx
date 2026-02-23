@@ -79,6 +79,7 @@ function IngredientCard({ ingredient }: { ingredient: Ingredient }) {
 
         {/* D-day badge */}
         <span
+          suppressHydrationWarning
           className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${getFreshnessStyle(
             ingredient.freshnessStatus
           )}`}

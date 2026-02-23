@@ -13,17 +13,19 @@ export function usePushNotifications() {
   const [permission, setPermission] = useState<NotificationPermission | 'unsupported'>('default')
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const isSupported = isPushSupported()
+  const [isSupported, setIsSupported] = useState(false)
 
   useEffect(() => {
+    const supported = isPushSupported()
+    setIsSupported(supported)
     setPermission(getPermissionState())
 
-    if (isSupported) {
+    if (supported) {
       getCurrentSubscription().then((sub) => {
         setIsSubscribed(!!sub)
       })
     }
-  }, [isSupported])
+  }, [])
 
   const subscribe = useCallback(async () => {
     setIsLoading(true)
