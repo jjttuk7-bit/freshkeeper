@@ -6,7 +6,7 @@ type Params = { params: Promise<{ id: string }> }
 
 export async function GET(_request: NextRequest, { params }: Params): Promise<NextResponse> {
   try {
-    await requireAuth()
+    const user = await requireAuth()
     const { id } = await params
 
     const recipe = await prisma.recipe.findUnique({ where: { id } })
@@ -15,7 +15,12 @@ export async function GET(_request: NextRequest, { params }: Params): Promise<Ne
       return errorResponse('NOT_FOUND', '레시피를 찾을 수 없습니다', 404)
     }
 
-    return successResponse(recipe)
+    const userPreference = await prisma.userPreference.findUnique({
+      where: { userId_recipeId: { userId: user.id, recipeId: id } },
+      select: { id: true, recipeId: true, rating: true, liked: true, cooked: true },
+    })
+
+    return successResponse({ ...recipe, userPreference })
   } catch (error) {
     return handleApiError(error)
   }

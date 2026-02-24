@@ -40,7 +40,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return { name: ing.name, daysLeft, category: ing.category }
     })
 
-    const response = await getChefResponse(message.trim(), ingredientContext, history)
+    const preferences = await prisma.userPreference.findMany({
+      where: { userId: user.id },
+      include: { recipe: { select: { name: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    })
+
+    const preferenceContext = {
+      liked: preferences.filter((p) => p.liked).map((p) => p.recipe.name),
+      disliked: preferences.filter((p) => p.rating !== null && p.rating <= 2).map((p) => p.recipe.name),
+      cooked: preferences.filter((p) => p.cooked).map((p) => p.recipe.name),
+    }
+
+    const response = await getChefResponse(message.trim(), ingredientContext, history, preferenceContext)
 
     return successResponse(response)
   } catch (error) {

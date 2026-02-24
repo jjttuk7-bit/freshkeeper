@@ -28,9 +28,15 @@ export interface ChatHistoryEntry {
   content: string
 }
 
+export interface PreferenceContext {
+  liked: string[]
+  disliked: string[]
+  cooked: string[]
+}
+
 // ── System Prompt ──────────────────────────────────────────
 
-function buildSystemPrompt(ingredients: IngredientContext[]): string {
+function buildSystemPrompt(ingredients: IngredientContext[], preferences?: PreferenceContext): string {
   const urgent = ingredients.filter((i) => i.daysLeft <= 1)
   const caution = ingredients.filter((i) => i.daysLeft > 1 && i.daysLeft <= 3)
   const fresh = ingredients.filter((i) => i.daysLeft > 3)
@@ -55,6 +61,13 @@ function buildSystemPrompt(ingredients: IngredientContext[]): string {
 - 주의(D-2~3): ${formatList(caution)}
 - 신선(D-4+): ${formatList(fresh)}
 - 전체 재료: ${ingredients.map((i) => i.name).join(', ') || '등록된 재료 없음'}
+${preferences && (preferences.liked.length > 0 || preferences.disliked.length > 0 || preferences.cooked.length > 0) ? `
+## 사용자 취향
+${preferences.liked.length > 0 ? `- 좋아하는 레시피: ${preferences.liked.join(', ')}` : ''}
+${preferences.disliked.length > 0 ? `- 선호하지 않는 레시피: ${preferences.disliked.join(', ')} (비슷한 스타일 피하기)` : ''}
+${preferences.cooked.length > 0 ? `- 직접 만들어본 레시피: ${preferences.cooked.join(', ')}` : ''}
+좋아하는 레시피와 비슷한 스타일을 추천하고, 선호하지 않는 스타일은 피해주세요.
+이미 만들어본 레시피는 다른 변형을 제안하거나 새로운 레시피를 우선 추천하세요.` : ''}
 
 ## 응답 형식
 반드시 아래 JSON 형식으로만 응답하세요. JSON 외의 텍스트는 포함하지 마세요.
@@ -92,7 +105,8 @@ function buildSystemPrompt(ingredients: IngredientContext[]): string {
 export async function getChefResponse(
   userMessage: string,
   ingredients?: IngredientContext[],
-  history?: ChatHistoryEntry[]
+  history?: ChatHistoryEntry[],
+  preferences?: PreferenceContext
 ): Promise<ChefResponse> {
   const apiKey = process.env.GEMINI_API_KEY
 
@@ -100,7 +114,7 @@ export async function getChefResponse(
     return getMockResponse(userMessage, ingredients ?? [])
   }
 
-  const systemPrompt = buildSystemPrompt(ingredients ?? [])
+  const systemPrompt = buildSystemPrompt(ingredients ?? [], preferences)
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey)

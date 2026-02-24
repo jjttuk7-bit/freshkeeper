@@ -19,6 +19,14 @@ export interface RecipeNutrition {
   sodium: number
 }
 
+export interface UserPreference {
+  id: string
+  recipeId: string
+  rating: number | null
+  liked: boolean
+  cooked: boolean
+}
+
 export interface Recipe {
   id: string
   name: string
@@ -34,6 +42,7 @@ export interface Recipe {
   imageUrl: string | null
   tags: string[]
   source: string | null
+  userPreference?: UserPreference
   createdAt: string
   updatedAt: string
 }

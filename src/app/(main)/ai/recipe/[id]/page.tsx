@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useAddShoppingItem } from '@/hooks/useShopping'
+import { useRecipePreference, useRateRecipe } from '@/hooks/useRecipePreference'
 import { Button } from '@/components/ui/button'
 import type { Recipe } from '@/types/recipe'
 import { useChefStore } from '@/stores/chefStore'
@@ -15,6 +16,8 @@ import {
   ShoppingCart,
   CheckCircle,
   PlayCircle,
+  Heart,
+  Star,
 } from 'lucide-react'
 
 const DIFFICULTY_LABEL = { easy: '쉬움', medium: '보통', hard: '어려움' } as const
@@ -33,6 +36,8 @@ export default function RecipeDetailPage() {
   const [addedItems, setAddedItems] = useState<Set<string>>(new Set())
   const [cookingMode, setCookingMode] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+  const { data: preference } = useRecipePreference(params.id as string)
+  const rateRecipe = useRateRecipe(params.id as string)
 
   useEffect(() => {
     const cached = useChefStore.getState().getRecipe(params.id as string)
@@ -113,7 +118,7 @@ export default function RecipeDetailPage() {
                 다음 단계
               </button>
             ) : (
-              <button onClick={() => setCookingMode(false)} className="flex-1 rounded-2xl bg-freshness-fresh py-4 text-sm font-semibold text-white active:scale-[0.98] transition-transform">
+              <button onClick={() => { rateRecipe.mutate({ cooked: true }); setCookingMode(false) }} className="flex-1 rounded-2xl bg-freshness-fresh py-4 text-sm font-semibold text-white active:scale-[0.98] transition-transform">
                 <CheckCircle className="mr-2 inline h-5 w-5" /> 요리 완성!
               </button>
             )}
@@ -160,6 +165,38 @@ export default function RecipeDetailPage() {
             {recipe.calories && (
               <span className="flex items-center gap-1 rounded-full bg-white/10 px-3 py-1 text-xs">
                 <Flame className="h-3 w-3" /> {recipe.calories}kcal
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Rating */}
+        <div className="mb-4 flex items-center gap-3 rounded-3xl bg-white p-4 shadow-card">
+          <button
+            onClick={() => rateRecipe.mutate({ liked: !preference?.liked })}
+            className={`flex h-11 w-11 items-center justify-center rounded-2xl transition-colors ${preference?.liked ? 'bg-red-50' : 'bg-gray-50'}`}
+          >
+            <Heart className={`h-5 w-5 transition-colors ${preference?.liked ? 'fill-red-500 text-red-500' : 'text-gray-300'}`} />
+          </button>
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                onClick={() => rateRecipe.mutate({ rating: star })}
+                className="p-0.5"
+              >
+                <Star className={`h-6 w-6 transition-colors ${(preference?.rating ?? 0) >= star ? 'fill-accent-yellow text-accent-yellow' : 'text-gray-200'}`} />
+              </button>
+            ))}
+          </div>
+          <div className="ml-auto">
+            {preference?.cooked ? (
+              <span className="flex items-center gap-1 rounded-2xl bg-mint/10 px-3 py-1.5 text-xs font-semibold text-mint">
+                <CheckCircle className="h-3.5 w-3.5" /> 요리 완성
+              </span>
+            ) : (
+              <span className="rounded-2xl bg-gray-50 px-3 py-1.5 text-xs text-gray-400">
+                아직 안 만들었어요
               </span>
             )}
           </div>
