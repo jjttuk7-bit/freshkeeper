@@ -24,7 +24,7 @@ export function useRecipePreference(recipeId: string) {
 export function useRateRecipe(recipeId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: { rating?: number; liked?: boolean; cooked?: boolean }) =>
+    mutationFn: (data: { rating?: number; liked?: boolean; cooked?: boolean; recipe?: Record<string, unknown> }) =>
       fetchJson<UserPreference>(`/api/recipes/${recipeId}/rate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
