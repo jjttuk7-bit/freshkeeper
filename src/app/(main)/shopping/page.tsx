@@ -7,8 +7,9 @@ import {
   useToggleShoppingItem,
   useDeleteShoppingItem,
 } from '@/hooks/useShopping'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import SuggestionsBanner from '@/components/shopping/SuggestionsBanner'
+import CheckoutSheet from '@/components/shopping/CheckoutSheet'
 import type { ShoppingItem } from '@/types/shopping'
 import {
   Plus,
@@ -18,6 +19,7 @@ import {
   Circle,
   ChevronDown,
   ChevronUp,
+  Refrigerator,
 } from 'lucide-react'
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -97,6 +99,7 @@ export default function ShoppingPage() {
   const [newItemUnit, setNewItemUnit] = useState('개')
   const [showAddForm, setShowAddForm] = useState(false)
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set())
+  const [checkoutOpen, setCheckoutOpen] = useState(false)
 
   const activeList = lists?.find((l) => l.status === 'active')
   const items = activeList?.items ?? []
@@ -161,6 +164,9 @@ export default function ShoppingPage() {
           </div>
         )}
       </div>
+
+      {/* Smart suggestions */}
+      <SuggestionsBanner />
 
       {/* Add form */}
       {showAddForm && (
@@ -294,6 +300,26 @@ export default function ShoppingPage() {
           </>
         )}
       </div>
+
+      {/* Floating checkout button */}
+      {checkedItems.length > 0 && (
+        <div className="fixed bottom-24 left-1/2 z-40 -translate-x-1/2">
+          <button
+            onClick={() => setCheckoutOpen(true)}
+            className="flex items-center gap-2 rounded-full bg-navy px-6 py-3.5 text-sm font-semibold text-white shadow-xl shadow-navy/30 transition-transform active:scale-[0.97]"
+          >
+            <Refrigerator className="h-4 w-4" />
+            냉장고에 등록 ({checkedItems.length})
+          </button>
+        </div>
+      )}
+
+      {/* Checkout sheet */}
+      <CheckoutSheet
+        open={checkoutOpen}
+        onOpenChange={setCheckoutOpen}
+        items={checkedItems}
+      />
     </div>
   )
 }

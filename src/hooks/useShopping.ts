@@ -3,6 +3,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { ShoppingList, ShoppingItemCreateInput } from '@/types/shopping'
 
+interface ShoppingSuggestion {
+  name: string
+  category: string
+  reason: string
+}
+
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options)
   const json = await res.json()
@@ -49,5 +55,12 @@ export function useDeleteShoppingItem() {
     mutationFn: (id: string) =>
       fetchJson(`/api/shopping/${id}`, { method: 'DELETE' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['shopping'] }),
+  })
+}
+
+export function useShoppingSuggestions() {
+  return useQuery<ShoppingSuggestion[]>({
+    queryKey: ['shoppingSuggestions'],
+    queryFn: () => fetchJson('/api/shopping/suggestions'),
   })
 }

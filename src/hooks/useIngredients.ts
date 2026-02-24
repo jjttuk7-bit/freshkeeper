@@ -85,3 +85,16 @@ export function useWasteIngredient() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['ingredients'] }),
   })
 }
+
+export function useBulkCreateIngredients() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { items: { name: string; category?: string; storageType?: string; quantity?: number; unit?: string }[] }) =>
+      fetchJson('/api/ingredients/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['ingredients'] }),
+  })
+}

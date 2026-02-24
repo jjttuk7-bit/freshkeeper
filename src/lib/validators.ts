@@ -32,6 +32,16 @@ export const shoppingItemCreateSchema = z.object({
   sourceRecipeId: z.string().optional(),
 })
 
+export const bulkIngredientCreateSchema = z.object({
+  items: z.array(z.object({
+    name: z.string().min(1, '식재료명을 입력해주세요'),
+    category: z.string().optional(),
+    storageType: z.enum(['fridge', 'freezer', 'room']).optional(),
+    quantity: z.number().positive().optional(),
+    unit: z.string().optional(),
+  })).min(1, '최소 1개의 항목이 필요합니다').max(50, '최대 50개까지 등록할 수 있습니다'),
+})
+
 export const chefMessageSchema = z.object({
   message: z.string().min(1, '메시지를 입력해주세요'),
   context: z.object({
