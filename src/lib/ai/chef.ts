@@ -47,20 +47,28 @@ function buildSystemPrompt(ingredients: IngredientContext[], preferences?: Prefe
   return `당신은 FreshKeeper의 AI 셰프 "프레셰프"입니다.
 따뜻하고 친근한 한국 주방 친구처럼 반말 섞인 존댓말로 대화하세요.
 
+## 가장 중요한 규칙 (절대 위반 금지)
+**레시피의 주재료는 반드시 아래 "냉장고 재료 목록"에 있는 것만 사용하세요.**
+냉장고에 없는 재료는 절대 주재료로 쓰지 마세요.
+소금, 후추, 식용유, 설탕, 간장, 참기름 등 기본 양념만 예외로 추가할 수 있습니다.
+냉장고에 없는 재료를 사용할 경우 반드시 inFridge: false로 표시하고, 그런 재료는 최대 1~2개로 제한하세요.
+
 ## 핵심 규칙
 1. **유통기한 임박 재료 최우선 활용** — 긴급(D-0~1) 재료를 반드시 1개 이상 포함하세요.
-2. **냉장고 재료 최대 활용** — 추가 구매 재료는 최소화하세요. 냉장고에 있는 재료는 inFridge: true로 표시하세요.
+2. **냉장고 재료로만 구성** — 냉장고 목록에 있는 재료 위주로 레시피를 만들고, 기본 양념 외 추가 재료는 최소화하세요.
 3. **한국 가정식 중심** — 한식을 기본으로 하되, 양식·중식·일식도 추천 가능합니다.
 4. **실용적 레시피** — 가정에서 쉽게 구할 수 있는 재료와 도구만 사용하세요.
 5. **레시피 2~3개 추천** — 난이도와 조리시간을 다양하게 섞어주세요.
 6. **조리 단계는 구체적으로** — "적당히", "약간" 대신 정확한 양과 시간을 명시하세요.
 7. **calories는 1인분 기준 추정값**을 제공하세요.
 
-## 현재 냉장고 상태
+## 냉장고 재료 목록 (이 재료만 사용하세요!)
+${ingredients.length > 0 ? ingredients.map((i) => `- ${i.name} (D-${i.daysLeft}, ${i.category})`).join('\n') : '등록된 재료 없음'}
+
+## 유통기한 현황
 - 긴급(D-0~1): ${formatList(urgent)}
 - 주의(D-2~3): ${formatList(caution)}
 - 신선(D-4+): ${formatList(fresh)}
-- 전체 재료: ${ingredients.map((i) => i.name).join(', ') || '등록된 재료 없음'}
 ${preferences && (preferences.liked.length > 0 || preferences.disliked.length > 0 || preferences.cooked.length > 0) ? `
 ## 사용자 취향
 ${preferences.liked.length > 0 ? `- 좋아하는 레시피: ${preferences.liked.join(', ')}` : ''}
@@ -188,6 +196,28 @@ function parseChefResponse(text: string, ingredients: IngredientContext[]): Chef
   return { message: text.replace(/```[\s\S]*?```/g, '').trim() || '레시피를 준비 중이에요. 다시 한 번 요청해주세요!' }
 }
 
+function isInFridge(recipeName: string, fridgeNames: Set<string>): boolean {
+  const name = recipeName.toLowerCase().trim()
+  // Basic seasonings are always considered "in fridge"
+  const basicSeasonings = [
+    '소금', '후추', '설탕', '간장', '국간장', '진간장', '참기름', '들기름',
+    '식용유', '올리브오일', '고춧가루', '고추장', '된장', '다진마늘',
+    '마늘', '생강', '식초', '맛술', '미림', '굴소스', '물', '소금·후추',
+  ]
+  if (basicSeasonings.some((s) => name.includes(s) || s.includes(name))) {
+    return true
+  }
+  // Check against actual fridge contents with fuzzy matching
+  const fridgeArray = Array.from(fridgeNames)
+  for (let i = 0; i < fridgeArray.length; i++) {
+    const fn = fridgeArray[i].toLowerCase()
+    if (fn === name || fn.includes(name) || name.includes(fn)) {
+      return true
+    }
+  }
+  return false
+}
+
 function normalizeResponse(data: Record<string, unknown>, ingredientNames: Set<string>): ChefResponse {
   const message = (data.message as string) ?? '레시피를 준비했어요!'
 
@@ -203,9 +233,8 @@ function normalizeResponse(data: Record<string, unknown>, ingredientNames: Set<s
       ? r.ingredients.map((ing: Record<string, unknown>) => ({
           name: (ing.name as string) ?? '',
           amount: (ing.amount as string) ?? '',
-          inFridge: typeof ing.inFridge === 'boolean'
-            ? ing.inFridge
-            : ingredientNames.has((ing.name as string) ?? ''),
+          // Always verify inFridge server-side, never trust the LLM
+          inFridge: isInFridge((ing.name as string) ?? '', ingredientNames),
         }))
       : [],
     steps: Array.isArray(r.steps) ? r.steps.map((s: unknown) => String(s)) : [],
